@@ -12,8 +12,20 @@ namespace IssueTrackerAPI.DatabaseContext
 
         public DbSet<Issue> Issues { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
-        public DbSet<Project> Project { get; set; } = null!;
-        
+        public DbSet<Project> Projects { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Issue>()
+                .HasOne(i => i.Reporter)
+                .WithMany()
+                .HasForeignKey(i => i.ReporterId);
+
+            modelBuilder.Entity<Issue>()
+                .HasOne(i => i.Assignee)
+                .WithMany()
+                .HasForeignKey(i => i.AssigneeId);
+        }
     }
 
 }

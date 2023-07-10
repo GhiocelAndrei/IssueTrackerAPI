@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
 using IssueTrackerAPI.Models;
+using AutoMapper;
+using IssueTrackerAPI.Mapping;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -14,40 +16,35 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly IssueContext _context;
+        private readonly IRepository<Project> _projectRepository;
+        private readonly IMapper _mapper;
 
-        public ProjectsController(IssueContext context)
+        public ProjectsController(IRepository<Project> issueRepository, IMapper mapper)
         {
-            _context = context;
+            _projectRepository = issueRepository;
+            _mapper = mapper;
         }
 
         // GET: api/Projects
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProject()
+        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProject()
         {
-          if (_context.Project == null)
-          {
-              return NotFound();
-          }
-            return await _context.Project.ToListAsync();
+            var projects = await _projectRepository.GetAll();
+            return _mapper.Map<List<ProjectDto>>(projects);
         }
 
         // GET: api/Projects/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(long id)
+        public async Task<ActionResult<ProjectDto>> GetProject(long id)
         {
-          if (_context.Project == null)
-          {
-              return NotFound();
-          }
-            var project = await _context.Project.FindAsync(id);
+            var project = await _projectRepository.Get(id);
 
             if (project == null)
             {
                 return NotFound();
             }
 
-            return project;
+            return _mapper.Map<ProjectDto>(project);
         }
 
         // PUT: api/Projects/5
@@ -60,15 +57,13 @@ namespace IssueTrackerAPI.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(project).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _projectRepository.Update(project);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProjectExists(id))
+                if (!await _projectRepository.Exists(id))
                 {
                     return NotFound();
                 }
@@ -86,12 +81,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Project>> PostProject(Project project)
         {
-          if (_context.Project == null)
-          {
-              return Problem("Entity set 'IssueContext.Project'  is null.");
-          }
-            _context.Project.Add(project);
-            await _context.SaveChangesAsync();
+            var createdProject = await _projectRepository.Add(project);
 
             return CreatedAtAction("GetProject", new { id = project.Id }, project);
         }
@@ -100,25 +90,10 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(long id)
         {
-            if (_context.Project == null)
-            {
-                return NotFound();
-            }
-            var project = await _context.Project.FindAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            _context.Project.Remove(project);
-            await _context.SaveChangesAsync();
+            await _projectRepository.Delete(id);
 
             return NoContent();
         }
 
-        private bool ProjectExists(long id)
-        {
-            return (_context.Project?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
 }

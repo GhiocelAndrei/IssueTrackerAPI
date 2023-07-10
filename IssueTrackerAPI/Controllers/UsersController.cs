@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
 using IssueTrackerAPI.Models;
+using AutoMapper;
+using IssueTrackerAPI.Mapping;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -14,40 +16,35 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IssueContext _context;
+        private readonly IRepository<User> _userRepository;
+        private readonly IMapper _mapper;
 
-        public UsersController(IssueContext context)
+        public UsersController(IRepository<User> userRepository, IMapper mapper)
         {
-            _context = context;
+            _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            return await _context.Users.ToListAsync();
+            var users = await _userRepository.GetAll();
+            return _mapper.Map<List<UserDto>>(users);
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
+        public async Task<ActionResult<UserDto>> GetUser(long id)
         {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userRepository.Get(id);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            return user;
+            return _mapper.Map<UserDto>(user); ;
         }
 
         // PUT: api/Users/5
@@ -60,15 +57,13 @@ namespace IssueTrackerAPI.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _userRepository.Update(user);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
+                if (!await _userRepository.Exists(id))
                 {
                     return NotFound();
                 }
@@ -86,12 +81,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-          if (_context.Users == null)
-          {
-              return Problem("Entity set 'IssueContext.Users'  is null.");
-          }
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var createdIssue = await _userRepository.Add(user);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
@@ -100,25 +90,10 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(long id)
         {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.Delete(id);
 
             return NoContent();
         }
 
-        private bool UserExists(long id)
-        {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
 }

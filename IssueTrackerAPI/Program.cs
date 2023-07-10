@@ -2,6 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using FluentMigrator.Runner;
 using IssueTrackerAPI.DatabaseContext;
 using System.Reflection;
+using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using IssueTrackerAPI.Mapping;
+using IssueTrackerAPI.Controllers;
+using IssueTrackerAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +20,10 @@ builder.Services.AddDbContext<IssueContext>(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+builder.Services.AddScoped<IRepository<Issue>, Repository<Issue>>();
+builder.Services.AddScoped<IRepository<Project>, Repository<Project>>();
+builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 
 // Fluent Migration Set Up
 var serviceProvider = builder.Services.AddFluentMigratorCore()

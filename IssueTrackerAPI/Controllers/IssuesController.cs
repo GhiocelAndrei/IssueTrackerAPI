@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
 using IssueTrackerAPI.Models;
+using IssueTrackerAPI.Mapping;
+using AutoMapper;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -14,60 +16,34 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class IssuesController : ControllerBase
     {
-        private readonly IssueContext _context;
-
-        public IssuesController(IssueContext context)
+        private readonly IRepository<Issue> _issueRepository;
+        private readonly IMapper _mapper;
+        public IssuesController(IRepository<Issue> issueRepository, IMapper mapper)
         {
-            _context = context;
+            _issueRepository = issueRepository;
+            _mapper = mapper;
         }
 
         // GET: api/Issues
         [HttpGet("Issues")]
-        public async Task<ActionResult<IEnumerable<Issue>>> GetIssues()
+        public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues()
         {
-          if (_context.Issues == null)
-          {
-              return NotFound();
-          }
-            return await _context.Issues.ToListAsync();
+            var issues = await _issueRepository.GetAll();
+            return _mapper.Map<List<IssueDto>>(issues);
         }
 
         // GET: api/Issues/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Issue>> GetIssue(long id)
+        public async Task<ActionResult<IssueDto>> GetIssue(long id)
         {
-          if (_context.Issues == null)
-          {
-              return NotFound();
-          }
-            var issue = await _context.Issues.FindAsync(id);
+            var issue = await _issueRepository.Get(id);
 
             if (issue == null)
             {
                 return NotFound();
             }
 
-            return issue;
-        }
-
-        //Get: api/Issues/Asignee/{name}
-        [HttpGet("Asignee/{name}")]
-        public async Task<ActionResult<IEnumerable<Issue>>> GetIssuesForName(string Name)
-        {
-            if (_context.Issues == null)
-            {
-                return NotFound();
-            }
-            var issue = await _context.Issues
-                .Where(i => i.Asignee.Name == Name)
-                .ToListAsync();
-
-            if (issue == null || !issue.Any())
-            {
-                return NotFound();
-            }
-
-            return issue;
+            return _mapper.Map<IssueDto>(issue); 
         }
 
         // PUT: api/Issues/5
@@ -80,15 +56,13 @@ namespace IssueTrackerAPI.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(issue).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _issueRepository.Update(issue);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!IssueExists(id))
+                if (!await _issueRepository.Exists(id))
                 {
                     return NotFound();
                 }
@@ -106,13 +80,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Issue>> PostIssue(Issue issue)
         {
-          if (_context.Issues == null)
-          {
-              return Problem("Entity set 'IssueContext.Issues'  is null.");
-          }
-
-            _context.Issues.Add(issue);
-            await _context.SaveChangesAsync();
+            var createdIssue = await _issueRepository.Add(issue);
 
             return CreatedAtAction("GetIssue", new { id = issue.Id }, issue);
         }
@@ -121,25 +89,9 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteIssue(long id)
         {
-            if (_context.Issues == null)
-            {
-                return NotFound();
-            }
-            var issue = await _context.Issues.FindAsync(id);
-            if (issue == null)
-            {
-                return NotFound();
-            }
-
-            _context.Issues.Remove(issue);
-            await _context.SaveChangesAsync();
+            await _issueRepository.Delete(id);
 
             return NoContent();
-        }
-
-        private bool IssueExists(long id)
-        {
-            return (_context.Issues?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
