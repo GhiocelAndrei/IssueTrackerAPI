@@ -1,4 +1,6 @@
-﻿namespace IssueTrackerAPI.Models
+﻿using IssueTracker.Abstractions.Enums;
+
+namespace IssueTracker.Abstractions.Models
 {
     public class Issue : ICreationTracking, IModificationTracking, ISoftDeletable
     {
@@ -16,9 +18,4 @@
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
     }
-    public enum Priority
-    {
-        Low, Medium, High
-    }
-
 }

@@ -1,8 +1,8 @@
-﻿using IssueTrackerAPI.DatabaseContext;
-using IssueTrackerAPI.Models;
+﻿using IssueTracker.DataAccess.DatabaseContext;
+using IssueTracker.Abstractions.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace IssueTrackerAPI.Services
+namespace IssueTracker.Application.Services
 {
     public class Repository<T> : IRepository<T> where T : class
     {
@@ -84,10 +84,10 @@ namespace IssueTrackerAPI.Services
             await _dbContext.SaveChangesAsync();
             return entity;
         }
+
         public async Task<bool> Exists(long id)
         {
             return await _dbContext.Set<T>().AnyAsync(e => EF.Property<long>(e, "Id") == id);
         }
-
     }
 }

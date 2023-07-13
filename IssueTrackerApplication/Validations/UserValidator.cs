@@ -1,24 +1,21 @@
 ﻿using FluentValidation;
-using IssueTrackerAPI.Mapping;
-using IssueTrackerAPI.Models;
+using IssueTracker.Abstractions.Mapping;
 
-namespace IssueTrackerAPI.Validations
+namespace IssueTracker.Application.Validations
 {
     public class UserValidator : AbstractValidator<UserCreatingDto>
     {
         public UserValidator() 
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Name is required.")
-                .Matches(@"^[^\s]*$").WithMessage("Name cannot contain spaces.");
+                .NotEmpty().WithMessage("Name is required.");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
                 .EmailAddress().WithMessage("A valid email is required.");
 
             RuleFor(x => x.Role)
-                .NotEmpty().WithMessage("Role is required.")
-                .Matches(@"^[^\s]*$").WithMessage("Role cannot contain spaces.");
+                .NotEmpty().WithMessage("Role is required.");
         }
     }
 }

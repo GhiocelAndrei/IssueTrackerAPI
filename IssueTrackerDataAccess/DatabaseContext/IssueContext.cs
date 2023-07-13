@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using IssueTrackerAPI.Models;
-using System.Reflection.Metadata;
+using IssueTracker.Abstractions.Models;
 
-namespace IssueTrackerAPI.DatabaseContext
+namespace IssueTracker.DataAccess.DatabaseContext
 {
     public class IssueContext : DbContext
     {
@@ -26,7 +25,7 @@ namespace IssueTrackerAPI.DatabaseContext
                 .WithMany()
                 .HasForeignKey(i => i.AssigneeId);
 
-            // Filtre pt Modelele care implementeaza ISoftDeletable
+            // Filters for models that implement ISoftDeletable
             modelBuilder.Entity<Issue>().HasQueryFilter(i => !i.IsDeleted);
             modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
         }

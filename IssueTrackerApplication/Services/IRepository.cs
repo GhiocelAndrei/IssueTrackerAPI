@@ -1,4 +1,5 @@
-﻿namespace IssueTrackerAPI.Services
+﻿
+namespace IssueTracker.Application.Services
 {
     public interface IRepository<T> where T : class
     {

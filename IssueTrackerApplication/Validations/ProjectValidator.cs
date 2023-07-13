@@ -1,14 +1,14 @@
 ﻿using FluentValidation;
-using IssueTrackerAPI.Mapping;
+using IssueTracker.Abstractions.Mapping;
 
-namespace IssueTrackerAPI.Validations
+namespace IssueTracker.Application.Validations
 {
     public class ProjectValidator : AbstractValidator<ProjectCreatingDto>
     {
         public ProjectValidator() 
         {
             RuleFor(x => x.Name)
-          .NotEmpty().WithMessage("Name is required.");
+                .NotEmpty().WithMessage("Name is required.");
         }
     }
 }

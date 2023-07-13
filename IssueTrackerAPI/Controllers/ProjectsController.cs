@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using IssueTrackerAPI.DatabaseContext;
-using IssueTrackerAPI.Models;
-using IssueTrackerAPI.Services;
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Application.Services;
 using AutoMapper;
-using IssueTrackerAPI.Mapping;
 
 namespace IssueTrackerAPI.Controllers
 {

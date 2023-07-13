@@ -1,6 +1,6 @@
-﻿using IssueTrackerAPI.Models;
+﻿using IssueTracker.Abstractions.Enums;
 
-namespace IssueTrackerAPI.Mapping
+namespace IssueTracker.Abstractions.Mapping
 {
     public class IssueDto
     {
@@ -8,6 +8,7 @@ namespace IssueTrackerAPI.Mapping
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
     public class IssueCreatingDto
     {
         public long ProjectId { get; set; }

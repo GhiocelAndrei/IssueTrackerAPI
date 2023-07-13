@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using IssueTrackerAPI.DatabaseContext;
-using IssueTrackerAPI.Models;
-using IssueTrackerAPI.Services;
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Application.Services;
 using AutoMapper;
-using IssueTrackerAPI.Mapping;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Options;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -23,12 +17,12 @@ namespace IssueTrackerAPI.Controllers
     {
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        public UsersController(IRepository<User> userRepository, IMapper mapper, IConfiguration config)
+        private readonly AppSettings _appSettings;
+        public UsersController(IRepository<User> userRepository, IMapper mapper, IOptions<AppSettings> appSettings)
         {
             _userRepository = userRepository;
             _mapper = mapper;
-            _config = config;
+            _appSettings = appSettings.Value;
         }
         
         // GET: api/Users
@@ -131,11 +125,11 @@ namespace IssueTrackerAPI.Controllers
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, userDto.Name),
-                new Claim(ClaimTypes.Role, userDto.Name)
+                new Claim(ClaimTypes.Role, userDto.Role)
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                _config.GetSection("AppSettings:Token").Value));
+                _appSettings.Secret));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 

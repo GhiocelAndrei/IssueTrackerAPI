@@ -1,33 +1,24 @@
 using Microsoft.EntityFrameworkCore;
-using FluentMigrator.Runner;
-using IssueTrackerAPI.DatabaseContext;
-using System.Reflection;
-using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
-using IssueTrackerAPI.Mapping;
-using IssueTrackerAPI.Controllers;
-using IssueTrackerAPI.Models;
-using IssueTrackerAPI.Services;
-using FluentValidation;
 using FluentValidation.AspNetCore;
-using IssueTrackerAPI.Validations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Application.Services;
+using IssueTracker.Application;
+using IssueTrackerAPI;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers()
     .AddFluentValidation(c => c
-    .RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly()));
+    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueValidator).Assembly));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddDbContext<IssueContext>(
-    o => o.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
+builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -51,27 +42,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                builder.Configuration.GetSection("AppSettings:Token").Value)),
+                builder.Configuration.GetSection("AppSettings:Secret").Value)),
             ValidateIssuer = false,
             ValidateAudience = false
         };
     });
 
-// Adaug Mapper-ul ce va face tranzitia din Model in DTO
-builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
-// Adaug Servici-ul Repository ce va fi folosit pentru controllere
-builder.Services.AddScoped<IRepository<Issue>, Repository<Issue>>();
-builder.Services.AddScoped<IRepository<Project>, Repository<Project>>();
-builder.Services.AddScoped<IRepository<User>, Repository<User>>();
-
-// Fluent Migration Set Up
-builder.Services.AddFluentMigratorCore()
-    .ConfigureRunner(config => config
-        .AddSqlServer()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("SqlServer"))
-        .ScanIn(Assembly.GetExecutingAssembly()).For.All())
-    .AddLogging(config => config.AddFluentMigratorConsole());
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
+    .AddScoped<IRepository<Issue>, Repository<Issue>>()
+    .AddScoped<IRepository<Project>, Repository<Project>>()
+    .AddScoped<IRepository<User>, Repository<User>>();
 
 builder.Services.AddHostedService<MigrationService>();
 

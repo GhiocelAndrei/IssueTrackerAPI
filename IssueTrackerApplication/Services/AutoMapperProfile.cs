@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using IssueTrackerAPI.Models;
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Abstractions.Mapping;
 
-namespace IssueTrackerAPI.Mapping
+namespace IssueTracker.Application.Services
 {
     public class AutoMapperProfile : Profile
     {

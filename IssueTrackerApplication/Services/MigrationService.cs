@@ -1,6 +1,8 @@
 ﻿using FluentMigrator.Runner;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace IssueTrackerAPI.Services
+namespace IssueTracker.Application.Services
 {
     public class MigrationService : IHostedService
     {

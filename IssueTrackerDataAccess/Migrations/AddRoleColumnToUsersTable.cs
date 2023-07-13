@@ -1,7 +1,6 @@
 ﻿using FluentMigrator;
-using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace IssueTrackerAPI.Migrations
+namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202307121418)]
     public class AddRoleColumnToUsersTable : Migration

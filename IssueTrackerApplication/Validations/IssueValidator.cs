@@ -1,22 +1,18 @@
 ﻿using FluentValidation;
-using IssueTrackerAPI.DatabaseContext;
-using IssueTrackerAPI.Mapping;
-using Microsoft.EntityFrameworkCore;
+using IssueTracker.Abstractions.Mapping;
 
-namespace IssueTrackerAPI.Validations
+namespace IssueTracker.Application.Validations
 {
     public class IssueValidator : AbstractValidator<IssueCreatingDto>
-    {
-        protected readonly IssueContext _dbContext;
-        public IssueValidator(IssueContext dbContext)
+    { 
+        public IssueValidator()
         {
-            _dbContext = dbContext;
 
             RuleFor(x => x.Title)
-            .NotEmpty().WithMessage("Title is required.");
+                .NotEmpty().WithMessage("Title is required.");
 
             RuleFor(x => x.Description)
-            .NotEmpty().WithMessage("Description is required.");
+                .NotEmpty().WithMessage("Description is required.");
 
             RuleFor(x => x.ProjectId)
                  .NotEmpty().WithMessage("ProjectId is required.");

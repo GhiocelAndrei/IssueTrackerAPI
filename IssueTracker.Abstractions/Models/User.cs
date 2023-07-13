@@ -1,4 +1,4 @@
-﻿namespace IssueTrackerAPI.Models
+﻿namespace IssueTracker.Abstractions.Models
 {
     public class User
     {
