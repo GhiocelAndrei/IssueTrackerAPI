@@ -7,8 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
 using IssueTrackerAPI.Models;
+using IssueTrackerAPI.Services;
 using AutoMapper;
 using IssueTrackerAPI.Mapping;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -18,13 +23,14 @@ namespace IssueTrackerAPI.Controllers
     {
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
-
-        public UsersController(IRepository<User> userRepository, IMapper mapper)
+        private readonly IConfiguration _config;
+        public UsersController(IRepository<User> userRepository, IMapper mapper, IConfiguration config)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _config = config;
         }
-
+        
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
@@ -50,12 +56,17 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, User user)
+        public async Task<IActionResult> PutUser(long id, UserCreatingDto userDto)
         {
-            if (id != user.Id)
+            var userExists = await _userRepository.Exists(id);
+
+            if (!userExists)
             {
-                return BadRequest();
+                return BadRequest("User with given ID not found !");
             }
+            
+            var user = _mapper.Map<User>(userDto);
+            user.Id = id;
 
             try
             {
@@ -63,7 +74,7 @@ namespace IssueTrackerAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await _userRepository.Exists(id))
+                if (!userExists)
                 {
                     return NotFound();
                 }
@@ -79,11 +90,31 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto)
         {
-            var createdIssue = await _userRepository.Add(user);
+            var user = _mapper.Map<User>(userDto);
+
+            var (_, _, createdUser) = await _userRepository.Add(user);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
+        }
+
+        // Login
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> LoginUser(UserCreatingDto userDto)
+        {
+            var users = await _userRepository.GetAll();
+
+            bool userExists = users.Any(
+                user => user.Name == userDto.Name && user.Email == userDto.Email);
+
+            if (!userExists)
+            {
+                return BadRequest("User not found.");
+            }
+
+            string token = CreateToken(userDto);
+            return Ok(token);
         }
 
         // DELETE: api/Users/5
@@ -95,5 +126,27 @@ namespace IssueTrackerAPI.Controllers
             return NoContent();
         }
 
+        private string CreateToken(UserCreatingDto userDto)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, userDto.Name),
+                new Claim(ClaimTypes.Role, userDto.Name)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                _config.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
     }
 }

@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
+using IssueTrackerAPI.Services;
 using IssueTrackerAPI.Models;
 using IssueTrackerAPI.Mapping;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -26,14 +28,17 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Issues
         [HttpGet("Issues")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues()
         {
             var issues = await _issueRepository.GetAll();
+
             return _mapper.Map<List<IssueDto>>(issues);
         }
 
         // GET: api/Issues/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<IssueDto>> GetIssue(long id)
         {
             var issue = await _issueRepository.Get(id);
@@ -45,16 +50,20 @@ namespace IssueTrackerAPI.Controllers
 
             return _mapper.Map<IssueDto>(issue); 
         }
-
+        
         // PUT: api/Issues/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutIssue(long id, Issue issue)
         {
-            if (id != issue.Id)
+            var issueExists = await _issueRepository.Exists(id);
+
+            if (!issueExists)
             {
-                return BadRequest();
+                return BadRequest("Issue with given ID not found !");
             }
+
+            issue.Id = id;
 
             try
             {
@@ -62,7 +71,7 @@ namespace IssueTrackerAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await _issueRepository.Exists(id))
+                if (!issueExists)
                 {
                     return NotFound();
                 }
@@ -78,15 +87,23 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Issues
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Issue>> PostIssue(Issue issue)
+        [Authorize(Roles = "Admin,User")]
+        public async Task<ActionResult<Issue>> PostIssue(IssueCreatingDto issueDto)
         {
-            var createdIssue = await _issueRepository.Add(issue);
+            var issue = _mapper.Map<Issue>(issueDto);
+
+            var (isSuccess, message, createdIssue) = await _issueRepository.Add(issue);
+            if (!isSuccess)
+            {
+                return BadRequest(message);
+            }
 
             return CreatedAtAction("GetIssue", new { id = issue.Id }, issue);
         }
 
         // DELETE: api/Issues/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteIssue(long id)
         {
             await _issueRepository.Delete(id);

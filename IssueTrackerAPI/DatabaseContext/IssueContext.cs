@@ -25,6 +25,10 @@ namespace IssueTrackerAPI.DatabaseContext
                 .HasOne(i => i.Assignee)
                 .WithMany()
                 .HasForeignKey(i => i.AssigneeId);
+
+            // Filtre pt Modelele care implementeaza ISoftDeletable
+            modelBuilder.Entity<Issue>().HasQueryFilter(i => !i.IsDeleted);
+            modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
         }
     }
 

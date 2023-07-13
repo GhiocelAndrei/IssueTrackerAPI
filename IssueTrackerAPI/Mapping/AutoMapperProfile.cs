@@ -8,8 +8,13 @@ namespace IssueTrackerAPI.Mapping
         public AutoMapperProfile()
         {
             CreateMap<Issue, IssueDto>();
+            CreateMap<IssueCreatingDto, Issue>();
+
             CreateMap<Project, ProjectDto>();
+            CreateMap<ProjectCreatingDto, Project>();
+
             CreateMap<User, UserDto>();
+            CreateMap<UserCreatingDto, User>();
         }
     }
 }

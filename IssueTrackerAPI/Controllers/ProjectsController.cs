@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using IssueTrackerAPI.DatabaseContext;
 using IssueTrackerAPI.Models;
+using IssueTrackerAPI.Services;
 using AutoMapper;
 using IssueTrackerAPI.Mapping;
 
@@ -50,12 +51,17 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Projects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProject(long id, Project project)
+        public async Task<IActionResult> PutProject(long id, ProjectCreatingDto projectDto)
         {
-            if (id != project.Id)
+            var projectExists = await _projectRepository.Exists(id);
+
+            if (!projectExists)
             {
-                return BadRequest();
+                return BadRequest("Project with given ID not found !");
             }
+
+            var project = _mapper.Map<Project>(projectDto);
+            project.Id = id;
 
             try
             {
@@ -63,7 +69,7 @@ namespace IssueTrackerAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await _projectRepository.Exists(id))
+                if (!projectExists)
                 {
                     return NotFound();
                 }
@@ -79,9 +85,11 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject(Project project)
+        public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto)
         {
-            var createdProject = await _projectRepository.Add(project);
+            var project = _mapper.Map<Project>(projectDto);
+
+            var(_, _, createdProject) = await _projectRepository.Add(project);
 
             return CreatedAtAction("GetProject", new { id = project.Id }, project);
         }

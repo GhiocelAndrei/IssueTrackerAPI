@@ -7,7 +7,7 @@
 
     public interface IModificationTracking
     {
-        DateTime UpdatedAt { get; set; }
+        DateTime? UpdatedAt { get; set; }
     }
 
     public interface ISoftDeletable
