@@ -1,45 +1,61 @@
 using Microsoft.EntityFrameworkCore;
-using FluentMigrator.Runner;
-using IssueTrackerAPI.DatabaseContext;
-using System.Reflection;
-using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
-using IssueTrackerAPI.Mapping;
-using IssueTrackerAPI.Controllers;
-using IssueTrackerAPI.Models;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
+
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Application.Services;
+using IssueTracker.Application;
+using IssueTrackerAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddFluentValidation(c => c
+    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueValidator).Assembly));
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddDbContext<IssueContext>(
-    o => o.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
+builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
-builder.Services.AddScoped<IRepository<Issue>, Repository<Issue>>();
-builder.Services.AddScoped<IRepository<Project>, Repository<Project>>();
-builder.Services.AddScoped<IRepository<User>, Repository<User>>();
+builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Description = "Standard Authorization header using the Bearer scheme",
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey
+        });
 
-// Fluent Migration Set Up
-var serviceProvider = builder.Services.AddFluentMigratorCore()
-    .AddFluentMigratorCore()
-    .ConfigureRunner(config => config
-    .AddSqlServer()
-    .WithGlobalConnectionString("Data Source=DESKTOP-LKO6E7L; Initial Catalog=IssueTrackerDb; Integrated Security=true; trustServerCertificate=true")
-    .ScanIn(Assembly.GetExecutingAssembly()).For.All())
-    .AddLogging(config => config.AddFluentMigratorConsole())
-    .BuildServiceProvider(false);
+        options.OperationFilter<SecurityRequirementsOperationFilter>();
+    });
 
-using (var scope = serviceProvider.CreateScope())
-{
-    var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-    runner.MigrateUp();
-}
+// Adaug Serviciile pentru Autorizare
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                builder.Configuration.GetSection("AppSettings:Secret").Value)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
+    .AddScoped<IRepository<Issue>, Repository<Issue>>()
+    .AddScoped<IRepository<Project>, Repository<Project>>()
+    .AddScoped<IRepository<User>, Repository<User>>();
+
+builder.Services.AddHostedService<MigrationService>();
 
 var app = builder.Build();
 
@@ -51,6 +67,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

@@ -1,4 +1,4 @@
-﻿namespace IssueTrackerAPI.Models
+﻿namespace IssueTracker.Abstractions.Models
 {
     public interface ICreationTracking
     {
@@ -7,7 +7,7 @@
 
     public interface IModificationTracking
     {
-        DateTime UpdatedAt { get; set; }
+        DateTime? UpdatedAt { get; set; }
     }
 
     public interface ISoftDeletable
