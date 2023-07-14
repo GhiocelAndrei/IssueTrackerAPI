@@ -55,7 +55,13 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IRepository<Project>, Repository<Project>>()
     .AddScoped<IRepository<User>, Repository<User>>();
 
-builder.Services.AddHostedService<MigrationService>();
+var migrationSuccessful = builder.Services.StartMigration(builder.Configuration.GetConnectionString("SqlServer"));
+
+if(!migrationSuccessful)
+{
+    // We will do something different in case Migrations fail, this is just temporary :)
+    return;
+}
 
 var app = builder.Build();
 

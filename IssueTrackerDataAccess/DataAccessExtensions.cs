@@ -12,13 +12,6 @@ namespace IssueTracker.DataAccess
             services.AddDbContext<IssueContext>(
                 o => o.UseSqlServer(connectionString));
 
-            services.AddFluentMigratorCore()
-            .ConfigureRunner(config => config
-            .AddSqlServer()
-            .WithGlobalConnectionString(connectionString)
-            .ScanIn(typeof(Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
-            .AddLogging(config => config.AddFluentMigratorConsole());
-
             return services;
         }
     }

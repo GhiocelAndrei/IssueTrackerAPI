@@ -1,33 +1,39 @@
 ﻿using FluentMigrator.Runner;
+using IssueTracker.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace IssueTracker.Application.Services
 {
-    public class MigrationService : IHostedService
+    public static class MigrationService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public MigrationService(IServiceScopeFactory scopeFactory)
+        public static bool StartMigration(this IServiceCollection services, string connectionString)
         {
-            _scopeFactory = scopeFactory;
-        }
+            var serviceProvider = services.AddFluentMigratorCore()
+            .ConfigureRunner(config => config
+            .AddSqlServer()
+            .WithGlobalConnectionString(connectionString)
+            .ScanIn(typeof(IssueTracker.DataAccess.Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
+            .AddLogging(config => config.AddFluentMigratorConsole())
+            .BuildServiceProvider(false);
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            using (var scope = _scopeFactory.CreateScope())
+            using (var scope = serviceProvider.CreateScope())
             {
-                var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-                runner.MigrateUp();
+                try
+                {
+                    var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+                    runner.MigrateUp();
+                }
+                catch (Exception ex)
+                {
+                    // Migration Failed
+                    return false;
+                }
             }
 
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            // No-op
-            return Task.CompletedTask;
+            return true;
         }
     }
 }
