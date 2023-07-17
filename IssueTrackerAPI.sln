@@ -11,13 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueTracker.DataAccess", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueTracker.Abstractions", "IssueTracker.Abstractions\IssueTracker.Abstractions.csproj", "{E4399919-3974-4BA4-8D2D-C577DACE38B2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{7389B285-07B3-4B4C-91D3-12B70A46FBC3}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{BACBC9E6-604F-44D8-A1CB-138EE2BA1B0B}"
-	ProjectSection(SolutionItems) = preProject
-		testing.yml = testing.yml
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,9 +36,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{BACBC9E6-604F-44D8-A1CB-138EE2BA1B0B} = {7389B285-07B3-4B4C-91D3-12B70A46FBC3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {91FA8861-0D5F-41A7-B3DC-EE54F86C870C}
