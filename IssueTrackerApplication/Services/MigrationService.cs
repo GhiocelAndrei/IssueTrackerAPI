@@ -30,6 +30,7 @@ namespace IssueTracker.Application.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Migration failed with exception: {ex.Message}");
+                throw;
             }
 
             return provider;
