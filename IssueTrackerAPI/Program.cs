@@ -9,6 +9,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
+using FluentMigrator.Runner;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,15 +56,22 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IRepository<Project>, Repository<Project>>()
     .AddScoped<IRepository<User>, Repository<User>>();
 
-var migrationSuccessful = builder.Services.StartMigration(builder.Configuration.GetConnectionString("SqlServer"));
-
-if(!migrationSuccessful)
-{
-    // We will do something different in case Migrations fail, this is just temporary :)
-    return;
-}
+builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));
 
 var app = builder.Build();
+
+using var scope = app.Services.CreateScope();
+var migratorRunner = scope.ServiceProvider.GetService<IMigrationRunner>();
+
+try
+{
+    migratorRunner.MigrateUp();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Migration failed with exception: {ex.Message}");
+    return;
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

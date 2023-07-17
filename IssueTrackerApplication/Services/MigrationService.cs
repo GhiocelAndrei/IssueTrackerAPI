@@ -9,31 +9,16 @@ namespace IssueTracker.Application.Services
 {
     public static class MigrationService
     {
-        public static bool StartMigration(this IServiceCollection services, string connectionString)
+        public static IServiceCollection SetUpFluentMigration(this IServiceCollection services, string connectionString)
         {
-            var serviceProvider = services.AddFluentMigratorCore()
-            .ConfigureRunner(config => config
-            .AddSqlServer()
-            .WithGlobalConnectionString(connectionString)
-            .ScanIn(typeof(IssueTracker.DataAccess.Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
-            .AddLogging(config => config.AddFluentMigratorConsole())
-            .BuildServiceProvider(false);
+            services.AddFluentMigratorCore()
+                .ConfigureRunner(config => config
+                    .AddSqlServer()
+                    .WithGlobalConnectionString(connectionString)
+                    .ScanIn(typeof(IssueTracker.DataAccess.Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
+                .AddLogging(config => config.AddFluentMigratorConsole());
 
-            using (var scope = serviceProvider.CreateScope())
-            {
-                try
-                {
-                    var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-                    runner.MigrateUp();
-                }
-                catch (Exception ex)
-                {
-                    // Migration Failed
-                    return false;
-                }
-            }
-
-            return true;
+            return services;
         }
     }
 }
