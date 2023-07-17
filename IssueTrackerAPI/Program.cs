@@ -60,18 +60,7 @@ builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString(
 
 var app = builder.Build();
 
-using var scope = app.Services.CreateScope();
-var migratorRunner = scope.ServiceProvider.GetService<IMigrationRunner>();
-
-try
-{
-    migratorRunner.MigrateUp();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Migration failed with exception: {ex.Message}");
-    return;
-}
+app.Services.StartMigrations();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

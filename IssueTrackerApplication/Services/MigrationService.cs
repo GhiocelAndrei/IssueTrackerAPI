@@ -1,9 +1,5 @@
 ﻿using FluentMigrator.Runner;
-using IssueTracker.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System.Reflection;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace IssueTracker.Application.Services
 {
@@ -19,6 +15,24 @@ namespace IssueTracker.Application.Services
                 .AddLogging(config => config.AddFluentMigratorConsole());
 
             return services;
+        }
+
+        public static IServiceProvider StartMigrations(this IServiceProvider provider)
+        {
+            using var scope = provider.CreateScope();
+
+            var migratorRunner = scope.ServiceProvider.GetService<IMigrationRunner>();
+
+            try
+            {
+                migratorRunner.MigrateUp();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Migration failed with exception: {ex.Message}");
+            }
+
+            return provider;
         }
     }
 }
