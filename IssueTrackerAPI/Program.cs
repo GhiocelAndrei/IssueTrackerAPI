@@ -9,6 +9,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
+using FluentMigrator.Runner;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,9 +56,11 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IRepository<Project>, Repository<Project>>()
     .AddScoped<IRepository<User>, Repository<User>>();
 
-builder.Services.AddHostedService<MigrationService>();
+builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));
 
 var app = builder.Build();
+
+app.Services.StartMigrations();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

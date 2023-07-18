@@ -1,33 +1,39 @@
 ﻿using FluentMigrator.Runner;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace IssueTracker.Application.Services
 {
-    public class MigrationService : IHostedService
+    public static class MigrationService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public MigrationService(IServiceScopeFactory scopeFactory)
+        public static IServiceCollection SetUpFluentMigration(this IServiceCollection services, string connectionString)
         {
-            _scopeFactory = scopeFactory;
+            services.AddFluentMigratorCore()
+                .ConfigureRunner(config => config
+                    .AddSqlServer()
+                    .WithGlobalConnectionString(connectionString)
+                    .ScanIn(typeof(IssueTracker.DataAccess.Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
+                .AddLogging(config => config.AddFluentMigratorConsole());
+
+            return services;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public static IServiceProvider StartMigrations(this IServiceProvider provider)
         {
-            using (var scope = _scopeFactory.CreateScope())
+            using var scope = provider.CreateScope();
+
+            var migratorRunner = scope.ServiceProvider.GetService<IMigrationRunner>();
+
+            try
             {
-                var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-                runner.MigrateUp();
+                migratorRunner.MigrateUp();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Migration failed with exception: {ex.Message}");
+                throw;
             }
 
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            // No-op
-            return Task.CompletedTask;
+            return provider;
         }
     }
 }
