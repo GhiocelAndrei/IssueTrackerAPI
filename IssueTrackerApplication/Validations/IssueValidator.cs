@@ -20,9 +20,6 @@ namespace IssueTracker.Application.Validations
             RuleFor(x => x.ReporterId)
                 .NotEmpty().WithMessage("ReporterId is required.");
 
-            RuleFor(x => x.AssigneeId)
-                .NotEmpty().WithMessage("AssigneeId is required.");
-
             RuleFor(x => x.Priority)
                 .IsInEnum()
                 .WithMessage("Invalid Priority.");

@@ -1,14 +1,15 @@
-﻿using IssueTracker.DataAccess.DatabaseContext;
-using IssueTracker.Abstractions.Models;
+﻿using IssueTracker.Abstractions.Models;
+using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
-namespace IssueTracker.Application.Services
+namespace IssueTracker.DataAccess.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected readonly IssueContext _dbContext;
 
-        public Repository(IssueContext dbContext)
+        public GenericRepository(IssueContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -23,19 +24,8 @@ namespace IssueTracker.Application.Services
             return await _dbContext.Set<T>().ToListAsync();
         }
 
-        public async Task<(bool isSuccess, string message, T entity)> Add(T entity)
+        public virtual async Task<T> Add(T entity)
         {
-            if (entity is Issue issueEntity)
-            {
-                var reporterExists = await _dbContext.Users.AnyAsync(u => u.Id == issueEntity.ReporterId);
-                var assigneeExists = await _dbContext.Users.AnyAsync(u => u.Id == issueEntity.AssigneeId);
-
-                if (!reporterExists || !assigneeExists)
-                {
-                    return (false, "ReporterId or AssigneeId doesn't exist in database.", null);
-                }
-            }
-
             if (entity is ICreationTracking creationTrackingEntity)
             {
                 creationTrackingEntity.CreatedAt = DateTime.UtcNow;
@@ -48,7 +38,7 @@ namespace IssueTracker.Application.Services
 
             _dbContext.Set<T>().Add(entity);
             await _dbContext.SaveChangesAsync();
-            return (true, string.Empty, entity);
+            return entity;
         }
 
         public async Task<T> Update(T entity)
@@ -88,6 +78,11 @@ namespace IssueTracker.Application.Services
         public async Task<bool> Exists(long id)
         {
             return await _dbContext.Set<T>().AnyAsync(e => EF.Property<long>(e, "Id") == id);
+        }
+
+        public async Task<bool> ExistsWithCondition(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbContext.Set<T>().AsNoTracking().AnyAsync(predicate);
         }
     }
 }

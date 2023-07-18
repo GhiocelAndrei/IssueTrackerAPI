@@ -10,4 +10,8 @@
     {
         public string Name { get; set; }
     }
+    public class ProjectCommandDto
+    {
+        public string Name { get; set; }
+    }
 }
