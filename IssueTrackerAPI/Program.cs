@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers()
     .AddFluentValidation(c => c
-    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueValidator).Assembly));
+    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueCreatingValidator).Assembly));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));

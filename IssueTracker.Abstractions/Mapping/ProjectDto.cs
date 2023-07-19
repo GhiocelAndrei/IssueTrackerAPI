@@ -10,7 +10,18 @@
     {
         public string Name { get; set; }
     }
-    public class ProjectCommandDto
+
+    public class CreateProjectCommand
+    {
+        public string Name { get; set; }
+    }
+
+    public class ProjectUpdatingDto
+    {
+        public string Name { get; set; }
+    }
+
+    public class UpdateProjectCommand
     {
         public string Name { get; set; }
     }

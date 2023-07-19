@@ -3,9 +3,9 @@ using IssueTracker.Abstractions.Mapping;
 
 namespace IssueTracker.Application.Validations
 {
-    public class IssueValidator : AbstractValidator<IssueCreatingDto>
-    { 
-        public IssueValidator()
+    public class IssueUpdatingValidator : AbstractValidator<IssueUpdatingDto>
+    {
+        public IssueUpdatingValidator()
         {
 
             RuleFor(x => x.Title)

@@ -29,7 +29,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            var users = await _userService.GetUsers();
+            var users = await _userService.GetAll();
 
             return _mapper.Map<List<UserDto>>(users);
         }
@@ -38,7 +38,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetUser(long id)
         {
-            var user = await _userService.GetUser(id);
+            var user = await _userService.Get(id);
 
             if (user == null)
             {
@@ -51,11 +51,11 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, UserCreatingDto userDto)
+        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
         {
-            var userCommand = _mapper.Map<UserCommandDto>(userDto);
+            var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
 
-            var putUser = await _userService.PutUser(id, userCommand);
+            var putUser = await _userService.Update(id, userCommand);
 
             if (putUser == null)
             {
@@ -70,9 +70,9 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto)
         {
-            var userCommand = _mapper.Map<UserCommandDto>(userDto);
+            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            var createdUser = await _userService.PostUser(userCommand);
+            var createdUser = await _userService.Create(userCommand);
 
             return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
@@ -81,7 +81,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<User>> LoginUser(UserCreatingDto userDto)
         {
-            var userCommand = _mapper.Map<UserCommandDto>(userDto);
+            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
             var credentialsCheck = await _userService.LoginUser(userCommand);
 
@@ -98,7 +98,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(long id)
         {
-            await _userService.DeleteUser(id);
+            await _userService.Delete(id);
 
             return NoContent();
         }

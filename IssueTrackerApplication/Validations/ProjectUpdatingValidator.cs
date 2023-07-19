@@ -3,9 +3,9 @@ using IssueTracker.Abstractions.Mapping;
 
 namespace IssueTracker.Application.Validations
 {
-    public class ProjectValidator : AbstractValidator<ProjectCreatingDto>
+    public class ProjectUpdatingValidator : AbstractValidator<ProjectCreatingDto>
     {
-        public ProjectValidator() 
+        public ProjectUpdatingValidator()
         {
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.");

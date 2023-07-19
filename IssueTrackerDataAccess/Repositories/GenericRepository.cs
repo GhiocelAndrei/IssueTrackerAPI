@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace IssueTracker.DataAccess.Repositories
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : class
+    public abstract class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected readonly IssueContext _dbContext;
 

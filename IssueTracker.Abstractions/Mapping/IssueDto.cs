@@ -19,7 +19,27 @@ namespace IssueTracker.Abstractions.Mapping
         public long AssigneeId { get; set; }
     }
 
-    public class IssueCommandDto
+    public class CreateIssueCommand
+    {
+        public long ProjectId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public Priority Priority { get; set; }
+        public long ReporterId { get; set; }
+        public long AssigneeId { get; set; }
+    }
+
+    public class IssueUpdatingDto
+    {
+        public long ProjectId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public Priority Priority { get; set; }
+        public long ReporterId { get; set; }
+        public long AssigneeId { get; set; }
+    }
+
+    public class UpdateIssueCommand
     {
         public long ProjectId { get; set; }
         public string Title { get; set; }

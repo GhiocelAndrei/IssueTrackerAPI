@@ -22,7 +22,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet("Issues")]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues()
         {
-            var issues = await _issueService.GetIssues();
+            var issues = await _issueService.GetAll();
 
             return _mapper.Map<List<IssueDto>>(issues);
         }
@@ -31,7 +31,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<IssueDto>> GetIssue(long id)
         {
-            var issue = await _issueService.GetIssue(id);
+            var issue = await _issueService.Get(id);
 
             if (issue == null)
             {
@@ -44,11 +44,11 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Issues/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutIssue(long id, IssueCreatingDto issueDto)
+        public async Task<IActionResult> PutIssue(long id, IssueUpdatingDto issueDto)
         {
-            var issueCommand = _mapper.Map<IssueCommandDto>(issueDto);
+            var issueCommand = _mapper.Map<UpdateIssueCommand>(issueDto);
 
-            var putIssue = await _issueService.PutIssue(id, issueCommand);
+            var putIssue = await _issueService.Update(id, issueCommand);
 
             if (putIssue == null)
             {
@@ -63,9 +63,9 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Issue>> PostIssue(IssueCreatingDto issueDto)
         {
-            var issueCommand = _mapper.Map<IssueCommandDto>(issueDto);
+            var issueCommand = _mapper.Map<CreateIssueCommand>(issueDto);
 
-            var createdIssue = await _issueService.PostIssue(issueCommand);
+            var createdIssue = await _issueService.Create(issueCommand);
 
             return CreatedAtAction("GetIssue", new { id = createdIssue.Id }, createdIssue);
         }
@@ -74,7 +74,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteIssue(long id)
         {
-            await _issueService.DeleteIssue(id);
+            await _issueService.Delete(id);
 
             return NoContent();
         }

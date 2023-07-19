@@ -23,7 +23,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
         {
-            var projects = await _projectService.GetProjects();
+            var projects = await _projectService.GetAll();
 
             return _mapper.Map<List<ProjectDto>>(projects);
         }
@@ -32,7 +32,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProjectDto>> GetProject(long id)
         {
-            var project = await _projectService.GetProject(id);
+            var project = await _projectService.Get(id);
 
             if (project == null)
             {
@@ -45,11 +45,11 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Projects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProject(long id, ProjectCreatingDto projectDto)
+        public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto)
         {
-            var projectCommand = _mapper.Map<ProjectCommandDto>(projectDto);
+            var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
 
-            var putProject = await _projectService.PutProject(id, projectCommand);
+            var putProject = await _projectService.Update(id, projectCommand);
 
             if (putProject == null)
             {
@@ -64,9 +64,9 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto)
         {
-            var projectCommand = _mapper.Map<ProjectCommandDto>(projectDto);
+            var projectCommand = _mapper.Map<CreateProjectCommand>(projectDto);
 
-            var createdProject = await _projectService.PostProject(projectCommand);
+            var createdProject = await _projectService.Create(projectCommand);
 
             return CreatedAtAction("GetProject", new { id = createdProject.Id }, createdProject);
         }
@@ -75,7 +75,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(long id)
         {
-            await _projectService.DeleteProject(id);
+            await _projectService.Delete(id);
 
             return NoContent();
         }
