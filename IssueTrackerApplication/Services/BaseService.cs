@@ -43,15 +43,8 @@ namespace IssueTracker.Application.Services
 
             _mapper.Map(command, issueModified);
 
-            try
-            {
-                await _repository.Update(issueModified);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
-
+            await _repository.Update(issueModified);
+            
             return issueModified;
         }
 
