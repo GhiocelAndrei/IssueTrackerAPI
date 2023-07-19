@@ -15,7 +15,7 @@ namespace IssueTracker.Application.Services
         {
             var user = _mapper.Map<User>(userCommand);
 
-            return await _repository.ExistsWithCondition(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
+            return await _repository.ExistsWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
         }
     }
 }

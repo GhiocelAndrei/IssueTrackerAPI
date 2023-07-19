@@ -20,21 +20,21 @@ namespace IssueTracker.Application.Services
 
         public async Task<IEnumerable<T>> GetAll()
         {
-            var issues = await _repository.GetAll();
+            var issues = await _repository.GetAllAsync();
 
             return issues;
         }
 
         public async Task<T> Get(long id)
         {
-            var issue = await _repository.Get(id);
+            var issue = await _repository.GetAsync(id);
 
             return issue;
         }
 
         public async Task<T> Update(long id, TUpdateCommand command)
         {
-            var issueModified = await _repository.Get(id);
+            var issueModified = await _repository.GetAsync(id);
 
             if (issueModified == null)
             {
@@ -43,7 +43,7 @@ namespace IssueTracker.Application.Services
 
             _mapper.Map(command, issueModified);
 
-            await _repository.Update(issueModified);
+            await _repository.UpdateAsync(issueModified);
             
             return issueModified;
         }
@@ -52,14 +52,14 @@ namespace IssueTracker.Application.Services
         {
             var issue = _mapper.Map<T>(command);
 
-            var createdIssue = await _repository.Add(issue);
+            var createdIssue = await _repository.AddAsync(issue);
 
             return createdIssue;
         }
 
         public async Task Delete(long id)
         {
-            await _repository.Delete(id);
+            await _repository.DeleteAsync(id);
         }
     }
 }

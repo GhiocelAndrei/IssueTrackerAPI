@@ -4,12 +4,12 @@ namespace IssueTracker.DataAccess.Repositories
 {
     public interface IGenericRepository<T> where T : class
     {
-        Task<T> Get(long id);
-        Task<IEnumerable<T>> GetAll();
-        Task<T> Add(T entity);
-        Task<T> Update(T entity);
-        Task<T> Delete(long id);
-        Task<bool> Exists(long id);
-        Task<bool> ExistsWithCondition(Expression<Func<T, bool>> predicate);
+        Task<T> GetAsync(long id);
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<T> AddAsync(T entity);
+        Task<T> UpdateAsync(T entity);
+        Task<T> DeleteAsync(long id);
+        Task<bool> ExistsAsync(long id);
+        Task<bool> ExistsWithConditionAsync(Expression<Func<T, bool>> predicate);
     }
 }

@@ -14,17 +14,17 @@ namespace IssueTracker.DataAccess.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<T> Get(long id)
+        public async Task<T> GetAsync(long id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbContext.Set<T>().ToListAsync();
         }
 
-        public virtual async Task<T> Add(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
             if (entity is ICreationTracking creationTrackingEntity)
             {
@@ -41,7 +41,7 @@ namespace IssueTracker.DataAccess.Repositories
             return entity;
         }
 
-        public async Task<T> Update(T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
             if (entity is IModificationTracking modificationTrackingEntity)
             {
@@ -53,9 +53,9 @@ namespace IssueTracker.DataAccess.Repositories
             return entity;
         }
 
-        public async Task<T> Delete(long id)
+        public async Task<T> DeleteAsync(long id)
         {
-            var entity = await Get(id);
+            var entity = await GetAsync(id);
             if (entity == null)
             {
                 return null;
@@ -75,14 +75,12 @@ namespace IssueTracker.DataAccess.Repositories
             return entity;
         }
 
-        public async Task<bool> Exists(long id)
-        {
-            return await _dbContext.Set<T>().AnyAsync(e => EF.Property<long>(e, "Id") == id);
-        }
+        public Task<bool> ExistsAsync(long id) 
+            => _dbContext.Set<T>().AnyAsync(e => EF.Property<long>(e, "Id") == id);
+        
 
-        public async Task<bool> ExistsWithCondition(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbContext.Set<T>().AsNoTracking().AnyAsync(predicate);
-        }
+        public Task<bool> ExistsWithConditionAsync(Expression<Func<T, bool>> predicate)
+            => _dbContext.Set<T>().AsNoTracking().AnyAsync(predicate);
+        
     }
 }

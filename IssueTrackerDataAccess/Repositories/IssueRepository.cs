@@ -6,20 +6,22 @@ namespace IssueTracker.DataAccess.Repositories
 {
     public class IssueRepository : GenericRepository<Issue>
     {
-        public IssueRepository(IssueContext dbContext) : base(dbContext) 
-        { 
+        protected readonly IGenericRepository<User> _userRepository;
+        public IssueRepository(IssueContext dbContext, IGenericRepository<User> userRepository) : base(dbContext) 
+        {
+            _userRepository = userRepository;
         }
 
-        public override async Task<Issue> Add(Issue entity)
+        public override async Task<Issue> AddAsync(Issue entity)
         {
-            var reporterExists = await _dbContext.Users.AnyAsync(u => u.Id == entity.ReporterId);
+            var reporterExists = await _userRepository.ExistsWithConditionAsync(u => u.Id == entity.ReporterId);
 
             if (!reporterExists)
             {
                 return null;
             }
 
-            var result = await base.Add(entity);
+            var result = await base.AddAsync(entity);
 
             return result;
         }
