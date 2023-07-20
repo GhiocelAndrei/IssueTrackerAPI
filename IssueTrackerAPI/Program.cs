@@ -9,14 +9,14 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
-using FluentMigrator.Runner;
+using IssueTracker.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers()
     .AddFluentValidation(c => c
-    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueValidator).Assembly));
+    .RegisterValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueCreatingValidator).Assembly));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));
@@ -52,9 +52,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
-    .AddScoped<IRepository<Issue>, Repository<Issue>>()
-    .AddScoped<IRepository<Project>, Repository<Project>>()
-    .AddScoped<IRepository<User>, Repository<User>>();
+    .AddScoped<IGenericRepository<Issue>, IssueRepository>()
+    .AddScoped<IGenericRepository<Project>, ProjectRepository>()
+    .AddScoped<IGenericRepository<User>, UserRepository>()
+    .AddScoped<IssueService>()
+    .AddScoped<ProjectService>()
+    .AddScoped<UserService>();
 
 builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));
 

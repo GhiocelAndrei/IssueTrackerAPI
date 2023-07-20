@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using IssueTracker.Application.Services;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -12,30 +10,28 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class IssuesController : ControllerBase
     {
-        private readonly IRepository<Issue> _issueRepository;
+        private readonly IssueService _issueService;
         private readonly IMapper _mapper;
-        public IssuesController(IRepository<Issue> issueRepository, IMapper mapper)
+        public IssuesController(IssueService issueService, IMapper mapper)
         {
-            _issueRepository = issueRepository;
+            _issueService = issueService;
             _mapper = mapper;
         }
 
         // GET: api/Issues
         [HttpGet("Issues")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues()
         {
-            var issues = await _issueRepository.GetAll();
+            var issues = await _issueService.GetAll();
 
             return _mapper.Map<List<IssueDto>>(issues);
         }
 
         // GET: api/Issues/5
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<ActionResult<IssueDto>> GetIssue(long id)
         {
-            var issue = await _issueRepository.Get(id);
+            var issue = await _issueService.Get(id);
 
             if (issue == null)
             {
@@ -48,31 +44,15 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Issues/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutIssue(long id, Issue issue)
+        public async Task<IActionResult> PutIssue(long id, IssueUpdatingDto issueDto)
         {
-            var issueExists = await _issueRepository.Exists(id);
+            var issueCommand = _mapper.Map<UpdateIssueCommand>(issueDto);
 
-            if (!issueExists)
-            {
-                return BadRequest("Issue with given ID not found !");
-            }
+            var putIssue = await _issueService.Update(id, issueCommand);
 
-            issue.Id = id;
-
-            try
+            if (putIssue == null)
             {
-                await _issueRepository.Update(issue);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!issueExists)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest("Put Issue Failed");
             }
 
             return NoContent();
@@ -81,26 +61,20 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Issues
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize(Roles = "Admin,User")]
         public async Task<ActionResult<Issue>> PostIssue(IssueCreatingDto issueDto)
         {
-            var issue = _mapper.Map<Issue>(issueDto);
+            var issueCommand = _mapper.Map<CreateIssueCommand>(issueDto);
 
-            var (isSuccess, message, createdIssue) = await _issueRepository.Add(issue);
-            if (!isSuccess)
-            {
-                return BadRequest(message);
-            }
+            var createdIssue = await _issueService.Create(issueCommand);
 
-            return CreatedAtAction("GetIssue", new { id = issue.Id }, issue);
+            return CreatedAtAction("GetIssue", new { id = createdIssue.Id }, createdIssue);
         }
 
         // DELETE: api/Issues/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteIssue(long id)
         {
-            await _issueRepository.Delete(id);
+            await _issueService.Delete(id);
 
             return NoContent();
         }

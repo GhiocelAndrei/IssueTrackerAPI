@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
@@ -15,12 +14,13 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IRepository<User> _userRepository;
+        private readonly UserService _userService;
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
-        public UsersController(IRepository<User> userRepository, IMapper mapper, IOptions<AppSettings> appSettings)
+
+        public UsersController(UserService userService, IMapper mapper, IOptions<AppSettings> appSettings)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
         }
@@ -29,7 +29,8 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            var users = await _userRepository.GetAll();
+            var users = await _userService.GetAll();
+
             return _mapper.Map<List<UserDto>>(users);
         }
 
@@ -37,45 +38,28 @@ namespace IssueTrackerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetUser(long id)
         {
-            var user = await _userRepository.Get(id);
+            var user = await _userService.Get(id);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            return _mapper.Map<UserDto>(user); ;
+            return _mapper.Map<UserDto>(user);
         }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, UserCreatingDto userDto)
+        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
         {
-            var userExists = await _userRepository.Exists(id);
+            var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
 
-            if (!userExists)
-            {
-                return BadRequest("User with given ID not found !");
-            }
-            
-            var user = _mapper.Map<User>(userDto);
-            user.Id = id;
+            var putUser = await _userService.Update(id, userCommand);
 
-            try
+            if (putUser == null)
             {
-                await _userRepository.Update(user);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!userExists)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest("Put Issue Failed");
             }
 
             return NoContent();
@@ -86,23 +70,22 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto)
         {
-            var user = _mapper.Map<User>(userDto);
+            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            var (_, _, createdUser) = await _userRepository.Add(user);
+            var createdUser = await _userService.Create(userCommand);
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
 
         // Login
         [HttpPost("login")]
         public async Task<ActionResult<User>> LoginUser(UserCreatingDto userDto)
         {
-            var users = await _userRepository.GetAll();
+            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            bool userExists = users.Any(
-                user => user.Name == userDto.Name && user.Email == userDto.Email);
+            var credentialsCheck = await _userService.LoginUser(userCommand);
 
-            if (!userExists)
+            if (!credentialsCheck)
             {
                 return BadRequest("User not found.");
             }
@@ -115,7 +98,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(long id)
         {
-            await _userRepository.Delete(id);
+            await _userService.Delete(id);
 
             return NoContent();
         }
