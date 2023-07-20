@@ -11,11 +11,21 @@ namespace IssueTracker.Application.Services
         {
         }
 
-        public async Task<bool> LoginUser(CreateUserCommand userCommand)
+        public async Task<String> LoginUser(CreateUserCommand userCommand)
         {
             var user = _mapper.Map<User>(userCommand);
 
-            return await _repository.ExistsWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
+            var userExists = await _repository
+                .ExistsWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
+
+            if(!userExists) 
+            {
+                return "NoRole";
+            }
+
+            var userRepository = _repository as UserRepository;
+
+            return await userRepository.FindUserRole(userCommand.Name, userCommand.Email);
         }
     }
 }

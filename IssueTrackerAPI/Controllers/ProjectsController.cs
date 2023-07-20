@@ -3,6 +3,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -21,6 +22,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Projects
         [HttpGet]
+        [Authorize(Policy = "ReadProjectsAccess")]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
         {
             var projects = await _projectService.GetAll();
@@ -30,6 +32,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Projects/5
         [HttpGet("{id}")]
+        [Authorize(Policy = "ReadProjectsAccess")]
         public async Task<ActionResult<ProjectDto>> GetProject(long id)
         {
             var project = await _projectService.Get(id);
@@ -45,6 +48,7 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Projects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Policy = "WriteProjectsAccess")]
         public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto)
         {
             var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
@@ -62,6 +66,7 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Policy = "WriteProjectsAccess")]
         public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto)
         {
             var projectCommand = _mapper.Map<CreateProjectCommand>(projectDto);
@@ -73,6 +78,7 @@ namespace IssueTrackerAPI.Controllers
 
         // DELETE: api/Projects/5
         [HttpDelete("{id}")]
+        [Authorize(Policy = "WriteProjectsAccess")]
         public async Task<IActionResult> DeleteProject(long id)
         {
             await _projectService.Delete(id);

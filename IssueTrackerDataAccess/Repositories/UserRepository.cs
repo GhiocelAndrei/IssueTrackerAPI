@@ -1,5 +1,6 @@
 ﻿using IssueTracker.Abstractions.Models;
 using IssueTracker.DataAccess.DatabaseContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.DataAccess.Repositories
 {
@@ -7,6 +8,14 @@ namespace IssueTracker.DataAccess.Repositories
     {
         public UserRepository(IssueContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<String> FindUserRole(String name, String email)
+        {
+            var user = await _dbContext.Set<User>().
+                        Where(u => u.Name == name && u.Email == email).SingleAsync();
+
+            return user.Role;
         }
     }
 }
