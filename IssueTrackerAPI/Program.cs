@@ -6,6 +6,7 @@ using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
 using IssueTracker.DataAccess.Repositories;
+using IssueTracker.Application.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 

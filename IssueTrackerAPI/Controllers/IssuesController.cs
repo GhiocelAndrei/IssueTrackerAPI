@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using IssueTracker.Application.Services;
+using IssueTracker.Application.Authorization;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using AutoMapper;

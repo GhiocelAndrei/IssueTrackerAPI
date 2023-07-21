@@ -2,9 +2,10 @@
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
+using IssueTracker.Abstractions.Definitions;
+using IssueTracker.Application.Authorization;
 using AutoMapper;
 using Microsoft.Extensions.Options;
-using IssueTracker.Abstractions.Definitions;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -87,11 +88,11 @@ namespace IssueTrackerAPI.Controllers
         {
             var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            var role = await _userService.LoginUser(userCommand);
+            var role = await _userService.LoginUserAsync(userCommand);
 
             if (role == "NotFound")
             {
-                return BadRequest("User not found.");
+                return NotFound("User not found.");
             }
 
             string token = _authorizationService.CreateToken(role, _appSettings.Secret);

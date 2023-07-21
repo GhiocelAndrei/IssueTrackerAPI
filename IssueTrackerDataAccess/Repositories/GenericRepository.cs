@@ -16,7 +16,7 @@ namespace IssueTracker.DataAccess.Repositories
 
         public async Task<T> GetAsync(long id)
             => await _dbContext.Set<T>().FindAsync(id);
-        
+
         public async Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate)
             => await _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync();
 

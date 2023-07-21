@@ -3,6 +3,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Definitions;
 using IssueTracker.Application.Services;
+using IssueTracker.Application.Authorization;
 using AutoMapper;
 
 namespace IssueTrackerAPI.Controllers
