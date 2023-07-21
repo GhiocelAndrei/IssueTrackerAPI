@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
 
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
@@ -20,18 +18,8 @@ builder.Services.AddControllers()
 builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-    {
-        options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-        {
-            Description = "Standard Authorization header using the Bearer scheme",
-            In = ParameterLocation.Header,
-            Name = "Authorization",
-            Type = SecuritySchemeType.ApiKey
-        });
 
-        options.OperationFilter<SecurityRequirementsOperationFilter>();
-    });
+builder.Services.AddSwaggerGen();
 
 // Adaug Serviciile pentru Autorizare
 builder.Services.ApplicationAddSecurity(builder.Configuration.GetSection("AppSettings:Secret").Value);

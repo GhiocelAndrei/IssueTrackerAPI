@@ -28,21 +28,6 @@ namespace IssueTracker.Application
                     };
                 });
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("IssuesAccess", policy =>
-                    policy.RequireClaim("access_issues", "enabled"));
-
-                options.AddPolicy("ReadProjectsAccess", policy =>
-                    policy.RequireClaim("read_projects", "enabled"));
-
-                options.AddPolicy("WriteProjectsAccess", policy =>
-                    policy.RequireClaim("write_projects", "enabled"));
-
-                options.AddPolicy("UsersAccess", policy =>
-                    policy.RequireClaim("access_users", "enabled"));
-            });
-
             return services;
         }
     }

@@ -15,14 +15,14 @@ namespace IssueTracker.DataAccess.Repositories
         }
 
         public async Task<T> GetAsync(long id)
-        {
-            return await _dbContext.Set<T>().FindAsync(id);
-        }
+            => await _dbContext.Set<T>().FindAsync(id);
+        
+        public async Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate)
+            => await _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync();
 
         public async Task<IEnumerable<T>> GetAllAsync()
-        {
-            return await _dbContext.Set<T>().ToListAsync();
-        }
+            => await _dbContext.Set<T>().ToListAsync();
+        
 
         public virtual async Task<T> AddAsync(T entity)
         {

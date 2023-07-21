@@ -4,7 +4,7 @@ using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
 using AutoMapper;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Authorization;
+using IssueTracker.Abstractions.Definitions;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -28,7 +28,7 @@ namespace IssueTrackerAPI.Controllers
         
         // GET: api/Users
         [HttpGet]
-        [Authorize(Policy = "UsersAccess")]
+        [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             var users = await _userService.GetAll();
@@ -38,7 +38,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize(Policy = "UsersAccess")]
+        [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<UserDto>> GetUser(long id)
         {
             var user = await _userService.Get(id);
@@ -54,7 +54,7 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize(Policy = "UsersAccess")]
+        [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
         {
             var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
@@ -89,7 +89,7 @@ namespace IssueTrackerAPI.Controllers
 
             var role = await _userService.LoginUser(userCommand);
 
-            if (role == "NoRole")
+            if (role == "NotFound")
             {
                 return BadRequest("User not found.");
             }
@@ -101,7 +101,7 @@ namespace IssueTrackerAPI.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = "UsersAccess")]
+        [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> DeleteUser(long id)
         {
             await _userService.Delete(id);

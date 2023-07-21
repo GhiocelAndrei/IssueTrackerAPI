@@ -7,6 +7,7 @@ namespace IssueTracker.Application.Services
 {
     public class UserService : BaseService<User, CreateUserCommand, UpdateUserCommand>
     {
+        const string USER_NOT_FOUND = "NotFound";
         public UserService(IGenericRepository<User> _repository, IMapper _mapper) : base(_repository, _mapper)
         {
         }
@@ -16,16 +17,14 @@ namespace IssueTracker.Application.Services
             var user = _mapper.Map<User>(userCommand);
 
             var userExists = await _repository
-                .ExistsWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
+                .GetUniqueWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
 
-            if(!userExists) 
+            if (userExists == null)
             {
-                return "NoRole";
+                return USER_NOT_FOUND;
             }
 
-            var userRepository = _repository as UserRepository;
-
-            return await userRepository.FindUserRole(userCommand.Name, userCommand.Email);
+            return userExists.Role;
         }
     }
 }

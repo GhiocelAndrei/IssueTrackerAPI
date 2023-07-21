@@ -8,16 +8,13 @@ namespace IssueTracker.Application.Services
     {
         private List<Claim> GenerateClaims(string role)
         {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim("access_issues", "enabled"),
-                new Claim("read_projects", "enabled")
-            };
+            List<Claim> claims = new List<Claim>();
 
             if (role == "Admin")
             {
                 claims.Add(new Claim("write_projects", "enabled"));
-                claims.Add(new Claim("access_users", "enabled"));
+                claims.Add(new Claim("read_users", "enabled"));
+                claims.Add(new Claim("write_users", "enabled"));
             }
 
             return claims;
