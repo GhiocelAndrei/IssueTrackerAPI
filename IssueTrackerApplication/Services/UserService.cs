@@ -11,7 +11,7 @@ namespace IssueTracker.Application.Services
         {
         }
 
-        public async Task<string> LoginUserAsync(CreateUserCommand userCommand)
+        public async Task<string> LoginUserAsync(LoginUserCommand userCommand)
         {
             var user = _mapper.Map<User>(userCommand);
 

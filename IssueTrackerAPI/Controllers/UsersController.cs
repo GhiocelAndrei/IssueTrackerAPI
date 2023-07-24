@@ -86,7 +86,7 @@ namespace IssueTrackerAPI.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto)
         {
-            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
+            var userCommand = _mapper.Map<LoginUserCommand>(userDto);
 
             var role = await _userService.LoginUserAsync(userCommand);
 
