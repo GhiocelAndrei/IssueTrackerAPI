@@ -4,7 +4,8 @@ namespace IssueTracker.Application.Authorization
 {
     public class OAuthAttribute : TypeFilterAttribute
     {
-        public string[] Scopes;
+        public string[] Scopes { get; private set; }
+
         public OAuthAttribute(params string[] scopes) : base(typeof(OAuthFilter))
         {
             Scopes = scopes;

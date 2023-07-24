@@ -5,13 +5,11 @@ namespace IssueTracker.Application.Authorization
 {
     public class OAuthFilter : IAuthorizationFilter
     {
-        private readonly OAuthAttribute _authAttribute;
         private readonly string[] _scopes;
 
         public OAuthFilter(OAuthAttribute authAttribute)
         {
-            _authAttribute = authAttribute;
-            _scopes = _authAttribute.Scopes;
+            _scopes = authAttribute.Scopes;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)

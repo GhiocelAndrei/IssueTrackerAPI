@@ -18,12 +18,7 @@ namespace IssueTracker.Application.Services
             var userExists = await _repository
                 .GetUniqueWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
 
-            if (userExists == null)
-            {
-                return null;
-            }
-
-            return userExists.Role;
+            return userExists?.Role;
         }
     }
 }
