@@ -11,14 +11,20 @@ namespace IssueTracker.Testing.ServicesTest
     public class IssueServiceTests
     {
         private readonly Mock<IGenericRepository<Issue>> _mockRepository;
-        private readonly Mock<IMapper> _mockMapper;
-        private readonly IssueService _issueService;
+        private readonly IMapper _mapper;
+        private readonly IssueService _sut;
 
         public IssueServiceTests()
         {
             _mockRepository = new Mock<IGenericRepository<Issue>>();
-            _mockMapper = new Mock<IMapper>();
-            _issueService = new IssueService(_mockRepository.Object, _mockMapper.Object);
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new AutoMapperProfile());
+            });
+            _mapper = mapperConfig.CreateMapper();
+
+            _sut = new IssueService(_mockRepository.Object, _mapper);
         }
 
         [Fact]
@@ -29,11 +35,25 @@ namespace IssueTracker.Testing.ServicesTest
             _mockRepository.Setup(x => x.GetAllAsync()).ReturnsAsync(issues);
 
             // Act
-            var result = await _issueService.GetAll();
+            var result = await _sut.GetAll();
 
             // Assert
             _mockRepository.Verify(x => x.GetAllAsync(), Times.Once);
             Assert.Equal(2, result.Count());
+        }
+
+        [Fact]
+        public async Task Get_ById_ShoudReturnNull_WhenIssueNotFound()
+        {
+            // Arrange
+            var id = 1;
+            _mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync((Issue)null);
+
+            // Act
+            var result = await _sut.Get(id);
+
+            // Assert
+            Assert.Null(result);
         }
 
         [Fact]
@@ -42,18 +62,35 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             var issuesId = 3;
 
-            var returnedIssue = new Issue 
-            { 
-                Id = issuesId 
+            var returnedIssue = new Issue
+            {
+                Id = issuesId
             };
 
             _mockRepository.Setup(x => x.GetAsync(issuesId)).ReturnsAsync(returnedIssue);
 
             // Act
-            var issue = await _issueService.Get(issuesId);
+            var issue = await _sut.Get(issuesId);
 
             // Assert
+            _mockRepository.Verify(x => x.GetAsync(issuesId), Times.Once);
             Assert.Equal(issuesId, issue.Id);
+        }
+
+        [Fact]
+        public async Task Update_ShouldReturnNull_WhenIssueNotFound()
+        {
+            // Arrange
+            var id = 1;
+            var command = new UpdateIssueCommand();
+
+            _mockRepository.Setup(repo => repo.GetAsync(id)).ReturnsAsync((Issue)null);
+
+            // Act
+            var result = await _sut.Update(id, command);
+
+            // Assert
+            Assert.Null(result);
         }
 
         [Fact]
@@ -81,23 +118,13 @@ namespace IssueTracker.Testing.ServicesTest
             };
 
             _mockRepository.Setup(r => r.GetAsync(1)).ReturnsAsync(issue);
-            _mockMapper.Setup(m => m.Map(updateIssueCommand, issue)).Callback((UpdateIssueCommand source, Issue target) => {
-                target.Title = source.Title;
-                target.Description = source.Description;
-                target.Priority = source.Priority;
-                target.ReporterId = source.ReporterId;
-                target.AssigneeId = source.AssigneeId;
-                target.ProjectId = source.ProjectId;
-            });
-
             _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Issue>())).ReturnsAsync((Issue i) => i);
 
             // Act
-            var result = await _issueService.Update(1, updateIssueCommand);
+            var result = await _sut.Update(1, updateIssueCommand);
 
             // Assert
             _mockRepository.Verify(r => r.GetAsync(1), Times.Once);
-            _mockMapper.Verify(m => m.Map(updateIssueCommand, issue), Times.Once);
             _mockRepository.Verify(r => r.UpdateAsync(issue), Times.Once);
 
             Assert.Equal(issue, result);
@@ -123,46 +150,42 @@ namespace IssueTracker.Testing.ServicesTest
                 ProjectId = 2
             };
 
-            var createdIssue = new Issue
-            {
-                Id = 1,
-                Title = createIssueCommand.Title,
-                Description = createIssueCommand.Description,
-                Priority = createIssueCommand.Priority,
-                ReporterId = createIssueCommand.ReporterId,
-                AssigneeId = createIssueCommand.AssigneeId,
-                ProjectId = createIssueCommand.ProjectId
-            };
+            var expectedIssue = _mapper.Map<Issue>(createIssueCommand);
+            expectedIssue.Id = 1;
 
-            _mockMapper.Setup(m => m.Map<Issue>(createIssueCommand)).Returns(createdIssue);
-            _mockRepository.Setup(r => r.AddAsync(It.IsAny<Issue>())).ReturnsAsync((Issue i) => i);
+            _mockRepository.Setup(r => r.AddAsync(It.IsAny<Issue>())).ReturnsAsync(expectedIssue);
 
             // Act
-            var result = await _issueService.Create(createIssueCommand);
+            var result = await _sut.Create(createIssueCommand);
 
             // Assert
-            _mockMapper.Verify(m => m.Map<Issue>(createIssueCommand), Times.Once);
-            _mockRepository.Verify(r => r.AddAsync(createdIssue), Times.Once);
+            _mockRepository.Verify(r => r.AddAsync(It.IsAny<Issue>()), Times.Once);
 
-            Assert.Equal(createdIssue, result);
+            Assert.Equal(expectedIssue.Id, result.Id);
+            Assert.Equal(expectedIssue.Title, result.Title);
+            Assert.Equal(expectedIssue.Description, result.Description);
+            Assert.Equal(expectedIssue.Priority, result.Priority);
+            Assert.Equal(expectedIssue.ReporterId, result.ReporterId);
+            Assert.Equal(expectedIssue.AssigneeId, result.AssigneeId);
+            Assert.Equal(expectedIssue.ProjectId, result.ProjectId);
         }
+
 
         [Fact]
         public async Task Delete_ShouldDeleteAndReturnDeletedIssue()
         {
             // Arrange
             var issueId = 1;
-            var deletedIssue = new Issue(); // Initialize with test data if necessary
+            var deletedIssue = new Issue();
+
             _mockRepository.Setup(r => r.GetAsync(issueId)).ReturnsAsync(deletedIssue);
             _mockRepository.Setup(r => r.DeleteAsync(issueId)).ReturnsAsync(deletedIssue);
 
             // Act
-            await _issueService.Delete(issueId);
+            await _sut.Delete(issueId);
 
             // Assert
             _mockRepository.Verify(r => r.DeleteAsync(issueId), Times.Once);
         }
-
-
     }
 }

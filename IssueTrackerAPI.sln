@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueTracker.DataAccess", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueTracker.Abstractions", "IssueTracker.Abstractions\IssueTracker.Abstractions.csproj", "{E4399919-3974-4BA4-8D2D-C577DACE38B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IssueTracker.Testing", "IssueTracker.Testing\IssueTracker.Testing.csproj", "{95C3530B-F214-42E8-970A-A8B3F64AD34F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IssueTracker.ApplicationTesting", "IssueTracker.ApplicationTesting\IssueTracker.ApplicationTesting.csproj", "{95C3530B-F214-42E8-970A-A8B3F64AD34F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
