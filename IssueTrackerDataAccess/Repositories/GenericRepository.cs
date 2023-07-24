@@ -5,24 +5,23 @@ using System.Linq.Expressions;
 
 namespace IssueTracker.DataAccess.Repositories
 {
-    public abstract class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected readonly IssueContext _dbContext;
 
-        public GenericRepository(IssueContext dbContext)
+        protected GenericRepository(IssueContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public async Task<T> GetAsync(long id)
-            => await _dbContext.Set<T>().FindAsync(id);
+        public ValueTask<T> GetAsync(long id)
+            => _dbContext.Set<T>().FindAsync(id);
 
-        public async Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate)
-            => await _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync();
+        public Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate)
+            => _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync();
 
-        public async Task<IEnumerable<T>> GetAllAsync()
-            => await _dbContext.Set<T>().ToListAsync();
-        
+        public Task<List<T>> GetAllAsync()
+            => _dbContext.Set<T>().ToListAsync();        
 
         public virtual async Task<T> AddAsync(T entity)
         {

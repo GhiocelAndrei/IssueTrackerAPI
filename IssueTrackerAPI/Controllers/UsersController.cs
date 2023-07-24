@@ -90,7 +90,7 @@ namespace IssueTrackerAPI.Controllers
 
             var role = await _userService.LoginUserAsync(userCommand);
 
-            if (role == "NotFound")
+            if (role == null)
             {
                 return NotFound("User not found.");
             }

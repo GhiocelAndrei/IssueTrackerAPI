@@ -7,7 +7,6 @@ namespace IssueTracker.Application.Services
 {
     public class UserService : BaseService<User, CreateUserCommand, UpdateUserCommand>
     {
-        const string USER_NOT_FOUND = "NotFound";
         public UserService(IGenericRepository<User> _repository, IMapper _mapper) : base(_repository, _mapper)
         {
         }
@@ -21,7 +20,7 @@ namespace IssueTracker.Application.Services
 
             if (userExists == null)
             {
-                return USER_NOT_FOUND;
+                return null;
             }
 
             return userExists.Role;

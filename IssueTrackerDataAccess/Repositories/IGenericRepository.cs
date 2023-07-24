@@ -4,9 +4,9 @@ namespace IssueTracker.DataAccess.Repositories
 {
     public interface IGenericRepository<T> where T : class
     {
-        Task<T> GetAsync(long id);
+        ValueTask<T> GetAsync(long id);
         Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate);
-        Task<IEnumerable<T>> GetAllAsync();
+        Task<List<T>> GetAllAsync();
         Task<T> AddAsync(T entity);
         Task<T> UpdateAsync(T entity);
         Task<T> DeleteAsync(long id);
