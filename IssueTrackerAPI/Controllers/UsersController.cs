@@ -2,10 +2,9 @@
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
+using IssueTracker.Abstractions.Definitions;
+using IssueTracker.Application.Authorization;
 using AutoMapper;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Options;
 
 namespace IssueTrackerAPI.Controllers
@@ -17,16 +16,20 @@ namespace IssueTrackerAPI.Controllers
         private readonly UserService _userService;
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
+        private readonly AuthorizationService _authorizationService;
 
-        public UsersController(UserService userService, IMapper mapper, IOptions<AppSettings> appSettings)
+        public UsersController(UserService userService, IMapper mapper, 
+            IOptions<AppSettings> appSettings, AuthorizationService authorizationService)
         {
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
+            _authorizationService = authorizationService;
         }
         
         // GET: api/Users
         [HttpGet]
+        [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             var users = await _userService.GetAll();
@@ -36,6 +39,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<UserDto>> GetUser(long id)
         {
             var user = await _userService.Get(id);
@@ -51,6 +55,7 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
         {
             var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
@@ -79,51 +84,30 @@ namespace IssueTrackerAPI.Controllers
 
         // Login
         [HttpPost("login")]
-        public async Task<ActionResult<User>> LoginUser(UserCreatingDto userDto)
+        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto)
         {
-            var userCommand = _mapper.Map<CreateUserCommand>(userDto);
+            var userCommand = _mapper.Map<LoginUserCommand>(userDto);
 
-            var credentialsCheck = await _userService.LoginUser(userCommand);
+            var role = await _userService.LoginUserAsync(userCommand);
 
-            if (!credentialsCheck)
+            if (role == null)
             {
-                return BadRequest("User not found.");
+                return NotFound("User not found.");
             }
 
-            string token = CreateToken(userDto);
+            string token = _authorizationService.CreateToken(role, _appSettings.Secret);
+
             return Ok(token);
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> DeleteUser(long id)
         {
             await _userService.Delete(id);
 
             return NoContent();
-        }
-
-        private string CreateToken(UserCreatingDto userDto)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, userDto.Name),
-                new Claim(ClaimTypes.Role, userDto.Role)
-            };
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                _appSettings.Secret));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwt;
         }
     }
 }

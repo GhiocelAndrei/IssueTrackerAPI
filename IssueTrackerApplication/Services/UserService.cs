@@ -11,11 +11,12 @@ namespace IssueTracker.Application.Services
         {
         }
 
-        public async Task<bool> LoginUser(CreateUserCommand userCommand)
+        public async Task<string> LoginUserAsync(LoginUserCommand userCommand)
         {
-            var user = _mapper.Map<User>(userCommand);
+            var userExists = await _repository
+                .GetUniqueWithConditionAsync(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email);
 
-            return await _repository.ExistsWithConditionAsync(anyUser => anyUser.Name == user.Name && anyUser.Email == user.Email);
+            return userExists?.Role;
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Abstractions.Definitions;
 using IssueTracker.Application.Services;
+using IssueTracker.Application.Authorization;
 using AutoMapper;
 
 namespace IssueTrackerAPI.Controllers
@@ -21,6 +23,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Projects
         [HttpGet]
+        [OAuth(Scopes.ProjectsRead)]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
         {
             var projects = await _projectService.GetAll();
@@ -30,6 +33,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Projects/5
         [HttpGet("{id}")]
+        [OAuth(Scopes.ProjectsRead)]
         public async Task<ActionResult<ProjectDto>> GetProject(long id)
         {
             var project = await _projectService.Get(id);
@@ -45,6 +49,7 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Projects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [OAuth(Scopes.ProjectsWrite)]
         public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto)
         {
             var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
@@ -62,6 +67,7 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [OAuth(Scopes.ProjectsWrite)]
         public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto)
         {
             var projectCommand = _mapper.Map<CreateProjectCommand>(projectDto);
@@ -73,6 +79,7 @@ namespace IssueTrackerAPI.Controllers
 
         // DELETE: api/Projects/5
         [HttpDelete("{id}")]
+        [OAuth(Scopes.ProjectsWrite)]
         public async Task<IActionResult> DeleteProject(long id)
         {
             await _projectService.Delete(id);

@@ -33,5 +33,15 @@
         public string Email { get; set; }
         public string Role { get; set; }
     }
+    public class UserLoginDto
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+    }
+    public class LoginUserCommand
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+    }
 
 }

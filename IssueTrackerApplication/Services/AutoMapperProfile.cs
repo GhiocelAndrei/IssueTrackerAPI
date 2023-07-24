@@ -46,6 +46,8 @@ namespace IssueTracker.Application.Services
             CreateMap<UpdateUserCommand, User>();
             CreateMap<UserUpdatingDto, UpdateUserCommand>();
             CreateMap<UserUpdatingDto, User>();
+
+            CreateMap<UserLoginDto, LoginUserCommand>();
         }
     }
 }

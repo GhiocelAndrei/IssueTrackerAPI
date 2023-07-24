@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using IssueTracker.DataAccess;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IssueTracker.Application
 {
@@ -8,6 +10,24 @@ namespace IssueTracker.Application
         public static IServiceCollection ApplicationAddDataAccess(this IServiceCollection services, string connectionString)
         {
             services.AddDataAccess(connectionString);
+            return services;
+        }
+
+        public static IServiceCollection ApplicationAddSecurity(this IServiceCollection services, string appSettingsSecret)
+        {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                        appSettingsSecret)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+
             return services;
         }
     }

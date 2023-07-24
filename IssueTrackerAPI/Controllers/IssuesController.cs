@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using IssueTracker.Application.Services;
+using IssueTracker.Application.Authorization;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using AutoMapper;
+using IssueTracker.Abstractions.Definitions;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -20,6 +22,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Issues
         [HttpGet("Issues")]
+        [OAuth(Scopes.IssuesRead)]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues()
         {
             var issues = await _issueService.GetAll();
@@ -29,6 +32,7 @@ namespace IssueTrackerAPI.Controllers
 
         // GET: api/Issues/5
         [HttpGet("{id}")]
+        [OAuth(Scopes.IssuesRead)]
         public async Task<ActionResult<IssueDto>> GetIssue(long id)
         {
             var issue = await _issueService.Get(id);
@@ -44,6 +48,7 @@ namespace IssueTrackerAPI.Controllers
         // PUT: api/Issues/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [OAuth(Scopes.IssuesWrite)]
         public async Task<IActionResult> PutIssue(long id, IssueUpdatingDto issueDto)
         {
             var issueCommand = _mapper.Map<UpdateIssueCommand>(issueDto);
@@ -61,6 +66,7 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Issues
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [OAuth(Scopes.IssuesWrite)]
         public async Task<ActionResult<Issue>> PostIssue(IssueCreatingDto issueDto)
         {
             var issueCommand = _mapper.Map<CreateIssueCommand>(issueDto);
@@ -72,6 +78,7 @@ namespace IssueTrackerAPI.Controllers
 
         // DELETE: api/Issues/5
         [HttpDelete("{id}")]
+        [OAuth(Scopes.IssuesWrite)]
         public async Task<IActionResult> DeleteIssue(long id)
         {
             await _issueService.Delete(id);
