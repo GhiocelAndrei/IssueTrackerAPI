@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using IssueTracker.DataAccess.Repositories;
-using Microsoft.EntityFrameworkCore;
+using IssueTracker.Abstractions.Exceptions;
 
 namespace IssueTracker.Application.Services
 {
@@ -29,16 +29,21 @@ namespace IssueTracker.Application.Services
         {
             var issue = await _repository.GetAsync(id);
 
+            if(issue == null) 
+            {
+                throw new NotFoundException("The requested entity could not be found.");
+            }
+
             return issue;
         }
-
+        
         public async Task<T> Update(long id, TUpdateCommand command)
         {
             var issueModified = await _repository.GetAsync(id);
 
             if (issueModified == null)
             {
-                return null;
+                throw new NotFoundException("The requested entity could not be found.");
             }
 
             _mapper.Map(command, issueModified);

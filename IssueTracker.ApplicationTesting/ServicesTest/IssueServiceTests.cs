@@ -5,6 +5,7 @@ using IssueTracker.DataAccess.Repositories;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Enums;
 using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Abstractions.Exceptions;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -43,18 +44,16 @@ namespace IssueTracker.Testing.ServicesTest
         }
 
         [Fact]
-        public async Task Get_ById_ShoudReturnNull_WhenIssueNotFound()
+        public async Task Get_ById_ShouldThrowNotFoundException_WhenIssueNotFound()
         {
             // Arrange
             var id = 1;
             _mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync((Issue)null);
 
-            // Act
-            var result = await _sut.Get(id);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.Get(id));
         }
+
 
         [Fact]
         public async Task Get_ById_ShouldReturnIssue()
@@ -78,20 +77,17 @@ namespace IssueTracker.Testing.ServicesTest
         }
 
         [Fact]
-        public async Task Update_ShouldReturnNull_WhenIssueNotFound()
+        public async Task Update_ShouldThrowNotFoundException_WhenIssueNotFound()
         {
             // Arrange
             var id = 1;
             var command = new UpdateIssueCommand();
+            _mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync((Issue)null);
 
-            _mockRepository.Setup(repo => repo.GetAsync(id)).ReturnsAsync((Issue)null);
-
-            // Act
-            var result = await _sut.Update(id, command);
-
-            // Assert
-            Assert.Null(result);
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.Update(id, command));
         }
+
 
         [Fact]
         public async Task Update_ShouldUpdateAndReturnUpdatedIssue()

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
-using FluentMigrator.Runner;
 
 namespace IssueTracker.DataAccess
 {
