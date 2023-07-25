@@ -1,6 +1,5 @@
 ﻿using IssueTracker.Abstractions.Models;
 using IssueTracker.DataAccess.DatabaseContext;
-using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.DataAccess.Repositories
 {

@@ -2,6 +2,7 @@
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.DataAccess.Repositories;
+using IssueTracker.Abstractions.Exceptions;
 
 namespace IssueTracker.Application.Services
 {
@@ -16,7 +17,12 @@ namespace IssueTracker.Application.Services
             var userExists = await _repository
                 .GetUniqueWithConditionAsync(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email);
 
-            return userExists?.Role;
+            if(userExists == null)
+            {
+                throw new NotFoundException("Login credentials are wrong");
+            }
+
+            return userExists.Role;
         }
     }
 }

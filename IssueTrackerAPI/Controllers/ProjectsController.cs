@@ -38,11 +38,6 @@ namespace IssueTrackerAPI.Controllers
         {
             var project = await _projectService.Get(id);
 
-            if (project == null)
-            {
-                return NotFound();
-            }
-
             return _mapper.Map<ProjectDto>(project);
         }
 
@@ -54,12 +49,7 @@ namespace IssueTrackerAPI.Controllers
         {
             var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
 
-            var putProject = await _projectService.Update(id, projectCommand);
-
-            if (putProject == null)
-            {
-                return BadRequest("Put Issue Failed");
-            }
+            await _projectService.Update(id, projectCommand);
 
             return NoContent();
         }

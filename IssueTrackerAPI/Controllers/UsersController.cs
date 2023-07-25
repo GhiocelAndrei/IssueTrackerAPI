@@ -44,11 +44,6 @@ namespace IssueTrackerAPI.Controllers
         {
             var user = await _userService.Get(id);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
-
             return _mapper.Map<UserDto>(user);
         }
 
@@ -60,12 +55,7 @@ namespace IssueTrackerAPI.Controllers
         {
             var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
 
-            var putUser = await _userService.Update(id, userCommand);
-
-            if (putUser == null)
-            {
-                return BadRequest("Put Issue Failed");
-            }
+            await _userService.Update(id, userCommand);
 
             return NoContent();
         }
@@ -89,11 +79,6 @@ namespace IssueTrackerAPI.Controllers
             var userCommand = _mapper.Map<LoginUserCommand>(userDto);
 
             var role = await _userService.LoginUserAsync(userCommand);
-
-            if (role == null)
-            {
-                return NotFound("User not found.");
-            }
 
             string token = _authorizationService.CreateToken(role, _appSettings.Secret);
 

@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using IssueTracker.Application.Services;
-using IssueTracker.Application.Authorization;
-using IssueTracker.Abstractions.Models;
-using IssueTracker.Abstractions.Mapping;
-using AutoMapper;
+﻿using AutoMapper;
 using IssueTracker.Abstractions.Definitions;
+using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Abstractions.Models;
+using IssueTracker.Application.Authorization;
+using IssueTracker.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -37,14 +37,9 @@ namespace IssueTrackerAPI.Controllers
         {
             var issue = await _issueService.Get(id);
 
-            if (issue == null)
-            {
-                return NotFound();
-            }
-
-            return _mapper.Map<IssueDto>(issue); 
+            return _mapper.Map<IssueDto>(issue);
         }
-        
+
         // PUT: api/Issues/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -53,12 +48,7 @@ namespace IssueTrackerAPI.Controllers
         {
             var issueCommand = _mapper.Map<UpdateIssueCommand>(issueDto);
 
-            var putIssue = await _issueService.Update(id, issueCommand);
-
-            if (putIssue == null)
-            {
-                return BadRequest("Put Issue Failed");
-            }
+            await _issueService.Update(id, issueCommand);
 
             return NoContent();
         }
