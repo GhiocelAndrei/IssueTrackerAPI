@@ -12,10 +12,10 @@ namespace IssueTracker.Application.Services
         {
         }
 
-        public async Task<string> LoginUserAsync(LoginUserCommand userCommand)
+        public async Task<string> LoginUserAsync(LoginUserCommand userCommand, CancellationToken cancellationToken)
         {
             var userExists = await _repository
-                .GetUniqueWithConditionAsync(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email);
+                .GetUniqueWithConditionAsync(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email, cancellationToken);
 
             if(userExists == null)
             {

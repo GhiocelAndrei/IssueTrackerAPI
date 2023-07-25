@@ -3,7 +3,7 @@ using IssueTracker.DataAccess.DatabaseContext;
 
 namespace IssueTracker.DataAccess.Repositories
 {
-    public class ProjectRepository : GenericRepository<Project>
+    public class ProjectRepository : GenericRepositoryForEntitiesWithId<Project>
     {
         public ProjectRepository(IssueContext dbContext) : base(dbContext)
         {

@@ -18,16 +18,16 @@ namespace IssueTracker.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
         {
-            var issues = await _repository.GetAllAsync();
+            var issues = await _repository.GetAllAsync(cancellationToken);
 
             return issues;
         }
 
-        public async Task<T> Get(long id)
+        public async Task<T> GetAsync(long id, CancellationToken cancellationToken)
         {
-            var issue = await _repository.GetAsync(id);
+            var issue = await _repository.GetAsync(id, cancellationToken);
 
             if(issue == null) 
             {
@@ -37,9 +37,9 @@ namespace IssueTracker.Application.Services
             return issue;
         }
         
-        public async Task<T> Update(long id, TUpdateCommand command)
+        public async Task<T> UpdateAsync(long id, TUpdateCommand command, CancellationToken cancellationToken)
         {
-            var issueModified = await _repository.GetAsync(id);
+            var issueModified = await _repository.GetAsync(id, cancellationToken);
 
             if (issueModified == null)
             {
@@ -48,23 +48,23 @@ namespace IssueTracker.Application.Services
 
             _mapper.Map(command, issueModified);
 
-            await _repository.UpdateAsync(issueModified);
+            await _repository.UpdateAsync(issueModified, cancellationToken);
             
             return issueModified;
         }
 
-        public async Task<T> Create(TCreateCommand command)
+        public async Task<T> CreateAsync(TCreateCommand command, CancellationToken cancellationToken)
         {
             var issue = _mapper.Map<T>(command);
 
-            var createdIssue = await _repository.AddAsync(issue);
+            var createdIssue = await _repository.AddAsync(issue, cancellationToken);
 
             return createdIssue;
         }
 
-        public async Task Delete(long id)
+        public async Task DeleteAsync(long id, CancellationToken cancellationToken)
         {
-            await _repository.DeleteAsync(id);
+            await _repository.DeleteAsync(id, cancellationToken);
         }
     }
 }

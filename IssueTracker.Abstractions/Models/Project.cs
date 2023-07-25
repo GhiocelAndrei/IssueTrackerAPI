@@ -1,6 +1,6 @@
 ﻿namespace IssueTracker.Abstractions.Models
 {
-    public class Project : ICreationTracking, IModificationTracking, ISoftDeletable
+    public class Project : IHasId, ICreationTracking, IModificationTracking, ISoftDeletable
     {
         public long Id { get; set; }
         public string Name { get; set; }

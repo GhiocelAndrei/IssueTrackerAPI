@@ -32,13 +32,13 @@ namespace IssueTracker.Testing.ServicesTest
         {
             // Arrange
             var projects = new List<Project> { new Project(), new Project() };
-            _mockRepository.Setup(x => x.GetAllAsync()).ReturnsAsync(projects);
+            _mockRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(projects);
 
             // Act
-            var result = await _sut.GetAll();
+            var result = await _sut.GetAllAsync(It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(x => x.GetAllAsync(), Times.Once);
+            _mockRepository.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal(2, result.Count());
         }
 
@@ -47,10 +47,10 @@ namespace IssueTracker.Testing.ServicesTest
         {
             // Arrange
             var id = 1;
-            _mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync((Project)null);
+            _mockRepository.Setup(r => r.GetAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((Project)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.Get(id));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.GetAsync(id, It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -64,13 +64,13 @@ namespace IssueTracker.Testing.ServicesTest
                 Id = projectId 
             };
 
-            _mockRepository.Setup(x => x.GetAsync(projectId)).ReturnsAsync(project);
+            _mockRepository.Setup(x => x.GetAsync(projectId, It.IsAny<CancellationToken>())).ReturnsAsync(project);
 
             // Act
-            var result = await _sut.Get(projectId);
+            var result = await _sut.GetAsync(projectId, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(x => x.GetAsync(projectId), Times.Once);
+            _mockRepository.Verify(x => x.GetAsync(projectId, It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal(project, result);
         }
 
@@ -80,10 +80,10 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             var id = 1;
             var command = new UpdateProjectCommand();
-            _mockRepository.Setup(r => r.GetAsync(id)).ReturnsAsync((Project)null);
+            _mockRepository.Setup(r => r.GetAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((Project)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.Update(id, command));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.UpdateAsync(id, command, It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -101,15 +101,16 @@ namespace IssueTracker.Testing.ServicesTest
                 Name = "New Project"
             };
 
-            _mockRepository.Setup(r => r.GetAsync(1)).ReturnsAsync(project);
-            _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Project>())).ReturnsAsync((Project p) => p);
+            _mockRepository.Setup(r => r.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(project);
+            _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>()))
+                            .ReturnsAsync((Project p, CancellationToken cancellationToken) => p);
 
             // Act
-            var result = await _sut.Update(1, updateProjectCommand);
+            var result = await _sut.UpdateAsync(1, updateProjectCommand, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.GetAsync(1), Times.Once);
-            _mockRepository.Verify(r => r.UpdateAsync(project), Times.Once);
+            _mockRepository.Verify(r => r.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+            _mockRepository.Verify(r => r.UpdateAsync(project, It.IsAny<CancellationToken>()), Times.Once);
             
             Assert.Equal(updateProjectCommand.Name, result.Name);
         }
@@ -126,13 +127,13 @@ namespace IssueTracker.Testing.ServicesTest
             var expectedProject = _mapper.Map<Project>(createProjectCommand);
             expectedProject.Id = 1;
 
-            _mockRepository.Setup(r => r.AddAsync(It.IsAny<Project>())).ReturnsAsync(expectedProject);
+            _mockRepository.Setup(r => r.AddAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>())).ReturnsAsync(expectedProject);
 
             // Act
-            var result = await _sut.Create(createProjectCommand);
+            var result = await _sut.CreateAsync(createProjectCommand, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.AddAsync(It.IsAny<Project>()), Times.Once);
+            _mockRepository.Verify(r => r.AddAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.Equal(createProjectCommand.Name, result.Name);
         }
@@ -144,14 +145,14 @@ namespace IssueTracker.Testing.ServicesTest
             var projectId = 1;
             var deletedProject = new Project();
 
-            _mockRepository.Setup(r => r.GetAsync(projectId)).ReturnsAsync(deletedProject);
-            _mockRepository.Setup(r => r.DeleteAsync(projectId)).ReturnsAsync(deletedProject);
+            _mockRepository.Setup(r => r.GetAsync(projectId, It.IsAny<CancellationToken>())).ReturnsAsync(deletedProject);
+            _mockRepository.Setup(r => r.DeleteAsync(projectId, It.IsAny<CancellationToken>())).ReturnsAsync(deletedProject);
 
             // Act
-            await _sut.Delete(projectId);
+            await _sut.DeleteAsync(projectId, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.DeleteAsync(projectId), Times.Once);
+            _mockRepository.Verify(r => r.DeleteAsync(projectId, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

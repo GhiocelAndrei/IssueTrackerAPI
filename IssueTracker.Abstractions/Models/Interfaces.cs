@@ -15,4 +15,9 @@
         bool IsDeleted { get; set; }
         DateTime? DeletedAt { get; set; }
     }
+
+    public interface IHasId
+    {
+        long Id { get; set; }
+    }
 }

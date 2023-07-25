@@ -30,9 +30,9 @@ namespace IssueTrackerAPI.Controllers
         // GET: api/Users
         [HttpGet]
         [OAuth(Scopes.UsersRead)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken cancellationToken)
         {
-            var users = await _userService.GetAll();
+            var users = await _userService.GetAllAsync(cancellationToken);
 
             return _mapper.Map<List<UserDto>>(users);
         }
@@ -40,9 +40,9 @@ namespace IssueTrackerAPI.Controllers
         // GET: api/Users/5
         [HttpGet("{id}")]
         [OAuth(Scopes.UsersRead)]
-        public async Task<ActionResult<UserDto>> GetUser(long id)
+        public async Task<ActionResult<UserDto>> GetUser(long id, CancellationToken cancellationToken)
         {
-            var user = await _userService.Get(id);
+            var user = await _userService.GetAsync(id, cancellationToken);
 
             return _mapper.Map<UserDto>(user);
         }
@@ -51,11 +51,11 @@ namespace IssueTrackerAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [OAuth(Scopes.UsersWrite)]
-        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
+        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto, CancellationToken cancellationToken)
         {
             var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
 
-            await _userService.Update(id, userCommand);
+            await _userService.UpdateAsync(id, userCommand, cancellationToken);
 
             return NoContent();
         }
@@ -63,22 +63,22 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto)
+        public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto, CancellationToken cancellationToken)
         {
             var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            var createdUser = await _userService.Create(userCommand);
+            var createdUser = await _userService.CreateAsync(userCommand, cancellationToken);
 
             return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
 
         // Login
         [HttpPost("login")]
-        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto)
+        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto, CancellationToken cancellationToken)
         {
             var userCommand = _mapper.Map<LoginUserCommand>(userDto);
 
-            var role = await _userService.LoginUserAsync(userCommand);
+            var role = await _userService.LoginUserAsync(userCommand, cancellationToken);
 
             string token = _authorizationService.CreateToken(role, _appSettings.Secret);
 
@@ -88,9 +88,9 @@ namespace IssueTrackerAPI.Controllers
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [OAuth(Scopes.UsersWrite)]
-        public async Task<IActionResult> DeleteUser(long id)
+        public async Task<IActionResult> DeleteUser(long id, CancellationToken cancellationToken)
         {
-            await _userService.Delete(id);
+            await _userService.DeleteAsync(id, cancellationToken);
 
             return NoContent();
         }

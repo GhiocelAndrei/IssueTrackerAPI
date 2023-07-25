@@ -1,6 +1,6 @@
 ﻿namespace IssueTracker.Abstractions.Models
 {
-    public class User
+    public class User : IHasId
     {
         public long Id { get; set; }
         public string Name { get; set; }

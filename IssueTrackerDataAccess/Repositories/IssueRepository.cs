@@ -3,7 +3,7 @@ using IssueTracker.DataAccess.DatabaseContext;
 
 namespace IssueTracker.DataAccess.Repositories
 {
-    public class IssueRepository : GenericRepository<Issue>
+    public class IssueRepository : GenericRepositoryForEntitiesWithId<Issue>
     {
         protected readonly IGenericRepository<User> _userRepository;
         public IssueRepository(IssueContext dbContext, IGenericRepository<User> userRepository) : base(dbContext) 
@@ -11,16 +11,16 @@ namespace IssueTracker.DataAccess.Repositories
             _userRepository = userRepository;
         }
 
-        public override async Task<Issue> AddAsync(Issue entity)
+        public override async Task<Issue> AddAsync(Issue entity, CancellationToken cancellationToken)
         {
-            var reporterExists = await _userRepository.ExistsWithConditionAsync(u => u.Id == entity.ReporterId);
+            var reporterExists = await _userRepository.ExistsWithConditionAsync(u => u.Id == entity.ReporterId, cancellationToken);
 
             if (!reporterExists)
             {
                 return null;
             }
 
-            var result = await base.AddAsync(entity);
+            var result = await base.AddAsync(entity, cancellationToken);
 
             return result;
         }

@@ -14,16 +14,16 @@ namespace IssueTracker.DataAccess.Repositories
             _dbContext = dbContext;
         }
 
-        public ValueTask<T> GetAsync(long id)
-            => _dbContext.Set<T>().FindAsync(id);
+        public ValueTask<T> GetAsync(long id, CancellationToken cancellationToken)
+            => _dbContext.Set<T>().FindAsync(id, cancellationToken);
 
-        public Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate)
-            => _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync();
+        public Task<T> GetUniqueWithConditionAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+            => _dbContext.Set<T>().Where(predicate).SingleOrDefaultAsync(cancellationToken);
 
-        public Task<List<T>> GetAllAsync()
-            => _dbContext.Set<T>().ToListAsync();        
+        public Task<List<T>> GetAllAsync(CancellationToken cancellationToken)
+            => _dbContext.Set<T>().ToListAsync(cancellationToken);        
 
-        public virtual async Task<T> AddAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken)
         {
             if (entity is ICreationTracking creationTrackingEntity)
             {
@@ -36,11 +36,11 @@ namespace IssueTracker.DataAccess.Repositories
             }
 
             _dbContext.Set<T>().Add(entity);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }
 
-        public async Task<T> UpdateAsync(T entity)
+        public async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken)
         {
             if (entity is IModificationTracking modificationTrackingEntity)
             {
@@ -48,13 +48,13 @@ namespace IssueTracker.DataAccess.Repositories
             }
 
             _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }
 
-        public async Task<T> DeleteAsync(long id)
+        public async Task<T> DeleteAsync(long id, CancellationToken cancellationToken)
         {
-            var entity = await GetAsync(id);
+            var entity = await GetAsync(id, cancellationToken);
             if (entity == null)
             {
                 return null;
@@ -70,16 +70,12 @@ namespace IssueTracker.DataAccess.Repositories
                 _dbContext.Set<T>().Remove(entity);
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }
-
-        public Task<bool> ExistsAsync(long id) 
-            => _dbContext.Set<T>().AnyAsync(e => EF.Property<long>(e, "Id") == id);
         
-
-        public Task<bool> ExistsWithConditionAsync(Expression<Func<T, bool>> predicate)
-            => _dbContext.Set<T>().AsNoTracking().AnyAsync(predicate);
+        public Task<bool> ExistsWithConditionAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+            => _dbContext.Set<T>().AsNoTracking().AnyAsync(predicate, cancellationToken);
         
     }
 }
