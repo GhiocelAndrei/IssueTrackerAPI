@@ -9,23 +9,22 @@ namespace IssueTracker.Application.Services
 {
     public class IssueService : BaseService<Issue, CreateIssueCommand, UpdateIssueCommand>
     {
-        protected readonly IssueContext _dbContext;
-        public IssueService(IssueContext dbContext, IMapper mapper) : base(dbContext, mapper)
+        protected readonly UserService _userService;
+        public IssueService(IssueContext dbContext, IMapper mapper, UserService userService) : base(dbContext, mapper)
         {
-            _dbContext = dbContext;
+            _userService = userService;
         }
 
-        public override async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken cancellationToken)
+        public override async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct)
         {
-            var reporterExists = await _dbContext.Set<User>()
-                .AsNoTracking().AnyAsync(u => u.Id == entity.ReporterId, cancellationToken);
+            var reporterExists = await _userService.ExistsAsync(entity.ReporterId, ct);
 
             if (!reporterExists)
             {
                 throw new InvalidInputException("Given input is invalid");
             }
 
-            var result = await base.CreateAsync(entity, cancellationToken);
+            var result = await base.CreateAsync(entity, ct);
 
             return result;
         }

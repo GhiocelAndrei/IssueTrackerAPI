@@ -4,6 +4,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace IssueTracker.Application.Services
 {
@@ -13,6 +14,9 @@ namespace IssueTracker.Application.Services
         {
         }
 
+        public Task<bool> ExistsAsync(long Id, CancellationToken ct)
+            => _dbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == Id, ct);
+         
         public async Task<string> LoginUserAsync(LoginUserCommand userCommand, CancellationToken ct)
         {
             var userExists = await _dbContext.Set<User>()

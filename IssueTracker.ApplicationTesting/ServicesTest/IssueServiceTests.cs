@@ -15,7 +15,7 @@ namespace IssueTracker.Testing.ServicesTest
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IssueService _sut;
-
+        private readonly UserService _userServiceMock;
         public IssueServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -28,7 +28,9 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _sut = new IssueService(_dbContext, _mapper);
+            _userServiceMock = new UserService(_dbContext, _mapper);
+
+            _sut = new IssueService(_dbContext, _mapper, _userServiceMock);
         }
 
         public void Dispose()
@@ -168,6 +170,7 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Equal(expectedIssue.ReporterId, result.ReporterId);
             Assert.Equal(expectedIssue.AssigneeId, result.AssigneeId);
             Assert.Equal(expectedIssue.ProjectId, result.ProjectId);
+
         }
 
         [Fact]
