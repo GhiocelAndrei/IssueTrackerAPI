@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
-using IssueTracker.DataAccess.Repositories;
 using IssueTracker.Abstractions.Exceptions;
+using IssueTracker.DataAccess.DatabaseContext;
+using Microsoft.EntityFrameworkCore;
+using IssueTracker.Abstractions.Models;
 
 namespace IssueTracker.Application.Services
 {
@@ -9,27 +11,23 @@ namespace IssueTracker.Application.Services
         where TCreateCommand : class
         where TUpdateCommand : class
     {
-        protected readonly IGenericRepository<T> _repository;
+        protected readonly IssueContext _dbContext;
         protected readonly IMapper _mapper;
 
-        public BaseService(IGenericRepository<T> repository, IMapper mapper)
+        public BaseService(IssueContext dbContext, IMapper mapper)
         {
-            _repository = repository;
+            _dbContext = dbContext;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
+        public Task<List<T>> GetAllAsync(CancellationToken ct)
+            => _dbContext.Set<T>().ToListAsync(ct);
+
+        public async Task<T> GetAsync(long id, CancellationToken ct)
         {
-            var issues = await _repository.GetAllAsync(cancellationToken);
+            var issue = await _dbContext.Set<T>().FindAsync(id, ct);
 
-            return issues;
-        }
-
-        public async Task<T> GetAsync(long id, CancellationToken cancellationToken)
-        {
-            var issue = await _repository.GetAsync(id, cancellationToken);
-
-            if(issue == null) 
+            if (issue == null) 
             {
                 throw new NotFoundException("The requested entity could not be found.");
             }
@@ -37,34 +35,66 @@ namespace IssueTracker.Application.Services
             return issue;
         }
         
-        public async Task<T> UpdateAsync(long id, TUpdateCommand command, CancellationToken cancellationToken)
+        public async Task<T> UpdateAsync(long id, TUpdateCommand command, CancellationToken ct)
         {
-            var issueModified = await _repository.GetAsync(id, cancellationToken);
+            var entityModified = await GetAsync(id, ct);
 
-            if (issueModified == null)
+            if (entityModified == null)
             {
                 throw new NotFoundException("The requested entity could not be found.");
             }
 
-            _mapper.Map(command, issueModified);
+            _mapper.Map(command, entityModified);
 
-            await _repository.UpdateAsync(issueModified, cancellationToken);
-            
-            return issueModified;
+            if (entityModified is IModificationTracking modificationTrackingEntity)
+            {
+                modificationTrackingEntity.UpdatedAt = DateTime.UtcNow;
+            }
+
+            _dbContext.Entry(entityModified).State = EntityState.Modified;
+
+            await _dbContext.SaveChangesAsync(ct);
+            return entityModified;
         }
 
-        public async Task<T> CreateAsync(TCreateCommand command, CancellationToken cancellationToken)
+        public virtual async Task<T> CreateAsync(TCreateCommand command, CancellationToken ct)
         {
-            var issue = _mapper.Map<T>(command);
+            var entity = _mapper.Map<T>(command);
 
-            var createdIssue = await _repository.AddAsync(issue, cancellationToken);
+            if (entity is ICreationTracking creationTrackingEntity)
+            {
+                creationTrackingEntity.CreatedAt = DateTime.UtcNow;
+            }
 
-            return createdIssue;
+            if (entity is ISoftDeletable softDeletableEntity)
+            {
+                softDeletableEntity.IsDeleted = false;
+            }
+
+            _dbContext.Set<T>().Add(entity);
+            await _dbContext.SaveChangesAsync(ct);
+            return entity;
         }
 
-        public async Task DeleteAsync(long id, CancellationToken cancellationToken)
+        public async Task DeleteAsync(long id, CancellationToken ct)
         {
-            await _repository.DeleteAsync(id, cancellationToken);
+            var entity = await GetAsync(id, ct);
+            if (entity == null)
+            {
+                throw new NotFoundException("The requested entity could not be found.");
+            }
+
+            if (entity is ISoftDeletable softDeletableEntity)
+            {
+                softDeletableEntity.IsDeleted = true;
+                softDeletableEntity.DeletedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _dbContext.Set<T>().Remove(entity);
+            }
+
+            await _dbContext.SaveChangesAsync(ct);
         }
     }
 }

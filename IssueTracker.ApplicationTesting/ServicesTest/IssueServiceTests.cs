@@ -1,23 +1,26 @@
 ﻿using Moq;
 using AutoMapper;
 using IssueTracker.Application.Services;
-using IssueTracker.DataAccess.Repositories;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Enums;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Exceptions;
+using IssueTracker.DataAccess.DatabaseContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.Testing.ServicesTest
 {
-    public class IssueServiceTests
+    public class IssueServiceTests : IDisposable
     {
-        private readonly Mock<IGenericRepository<Issue>> _mockRepository;
+        private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IssueService _sut;
 
         public IssueServiceTests()
         {
-            _mockRepository = new Mock<IGenericRepository<Issue>>();
+            var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString());
+            _dbContext = new IssueContext(optionsBuilder.Options);
 
             var mapperConfig = new MapperConfiguration(cfg =>
             {
@@ -25,55 +28,55 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _sut = new IssueService(_mockRepository.Object, _mapper);
+            _sut = new IssueService(_dbContext, _mapper);
+        }
+
+        public void Dispose()
+        {
+            _dbContext.Dispose();
+            _dbContext = null;
         }
 
         [Fact]
         public async Task GetAll_ShouldReturnAllIssues()
         {
             // Arrange
-            var issues = new List<Issue> { new Issue(), new Issue() };
-            _mockRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(issues);
+            _dbContext.Issues.Add(new Issue());
+            _dbContext.Issues.Add(new Issue());
+            _dbContext.SaveChanges();
 
             // Act
             var result = await _sut.GetAllAsync(It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal(2, result.Count());
         }
+
 
         [Fact]
         public async Task Get_ById_ShouldThrowNotFoundException_WhenIssueNotFound()
         {
             // Arrange
             var id = 1;
-            _mockRepository.Setup(r => r.GetAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((Issue)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.GetAsync(id, It.IsAny<CancellationToken>()));
         }
 
-
         [Fact]
         public async Task Get_ById_ShouldReturnIssue()
         {
             // Arrange
-            var issuesId = 3;
-
-            var returnedIssue = new Issue
-            {
-                Id = issuesId
-            };
-
-            _mockRepository.Setup(x => x.GetAsync(issuesId, It.IsAny<CancellationToken>())).ReturnsAsync(returnedIssue);
+            var issuesId = 1;
+            var issue = new Issue { Id = issuesId };
+            _dbContext.Issues.Add(issue);
+            _dbContext.SaveChanges();
 
             // Act
-            var issue = await _sut.GetAsync(issuesId, It.IsAny<CancellationToken>());
-
+            var returnedIssue = await _sut.GetAsync(issuesId, It.IsAny<CancellationToken>());
+            
             // Assert
-            _mockRepository.Verify(x => x.GetAsync(issuesId, It.IsAny<CancellationToken>()), Times.Once);
-            Assert.Equal(issuesId, issue.Id);
+            Assert.Equal(issuesId, returnedIssue.Id);
         }
 
         [Fact]
@@ -82,20 +85,20 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             var id = 1;
             var command = new UpdateIssueCommand();
-            _mockRepository.Setup(r => r.GetAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((Issue)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.UpdateAsync(id, command, It.IsAny<CancellationToken>()));
         }
 
-
         [Fact]
         public async Task Update_ShouldUpdateAndReturnUpdatedIssue()
         {
             // Arrange
+            var id = 1;
+
             var issue = new Issue
             {
-                Id = 1,
+                Id = id,
                 Title = "Old title",
                 Description = "Old description",
                 Priority = Priority.High,
@@ -103,6 +106,7 @@ namespace IssueTracker.Testing.ServicesTest
                 AssigneeId = 1,
                 ProjectId = 1
             };
+
             var updateIssueCommand = new UpdateIssueCommand
             {
                 Title = "New title",
@@ -113,17 +117,13 @@ namespace IssueTracker.Testing.ServicesTest
                 ProjectId = 2
             };
 
-            _mockRepository.Setup(r => r.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(issue);
-            _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<Issue>(), It.IsAny<CancellationToken>())).
-                        ReturnsAsync((Issue i, CancellationToken cancellationToken) => i);
+            _dbContext.Issues.Add(issue);
+            _dbContext.SaveChanges();
 
             // Act
-            var result = await _sut.UpdateAsync(1, updateIssueCommand, It.IsAny<CancellationToken>());
+            var result = await _sut.UpdateAsync(id, updateIssueCommand, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
-            _mockRepository.Verify(r => r.UpdateAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
-
             Assert.Equal(issue, result);
             Assert.Equal(updateIssueCommand.Title, result.Title);
             Assert.Equal(updateIssueCommand.Description, result.Description);
@@ -150,14 +150,17 @@ namespace IssueTracker.Testing.ServicesTest
             var expectedIssue = _mapper.Map<Issue>(createIssueCommand);
             expectedIssue.Id = 1;
 
-            _mockRepository.Setup(r => r.AddAsync(It.IsAny<Issue>(), It.IsAny<CancellationToken>())).ReturnsAsync(expectedIssue);
+            var reporter = new User
+            {
+                Id = 2
+            };
+            _dbContext.Users.Add(reporter);
+            _dbContext.SaveChanges();
 
             // Act
             var result = await _sut.CreateAsync(createIssueCommand, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.AddAsync(It.IsAny<Issue>(), It.IsAny<CancellationToken>()), Times.Once);
-
             Assert.Equal(expectedIssue.Id, result.Id);
             Assert.Equal(expectedIssue.Title, result.Title);
             Assert.Equal(expectedIssue.Description, result.Description);
@@ -167,22 +170,21 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Equal(expectedIssue.ProjectId, result.ProjectId);
         }
 
-
         [Fact]
         public async Task Delete_ShouldDeleteAndReturnDeletedIssue()
         {
             // Arrange
             var issueId = 1;
-            var deletedIssue = new Issue();
-
-            _mockRepository.Setup(r => r.GetAsync(issueId, It.IsAny<CancellationToken>())).ReturnsAsync(deletedIssue);
-            _mockRepository.Setup(r => r.DeleteAsync(issueId, It.IsAny<CancellationToken>())).ReturnsAsync(deletedIssue);
+            var deletedIssue = new Issue { Id = issueId };
+            _dbContext.Issues.Add(deletedIssue);
+            await _dbContext.SaveChangesAsync();
 
             // Act
             await _sut.DeleteAsync(issueId, It.IsAny<CancellationToken>());
 
             // Assert
-            _mockRepository.Verify(r => r.DeleteAsync(issueId, It.IsAny<CancellationToken>()), Times.Once);
+            Assert.False(_dbContext.Issues.Any(issue => issue.Id == issueId));
         }
+
     }
 }

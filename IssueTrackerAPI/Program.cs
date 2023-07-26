@@ -4,7 +4,6 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
-using IssueTracker.DataAccess.Repositories;
 using IssueTracker.Application.Authorization;
 using FluentValidation;
 
@@ -30,9 +29,6 @@ builder.Services.ApplicationAddSecurity(builder.Configuration.GetSection("AppSet
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
-    .AddScoped<IGenericRepository<Issue>, IssueRepository>()
-    .AddScoped<IGenericRepository<Project>, ProjectRepository>()
-    .AddScoped<IGenericRepository<User>, UserRepository>()
     .AddScoped<IssueService>()
     .AddScoped<ProjectService>()
     .AddScoped<UserService>()

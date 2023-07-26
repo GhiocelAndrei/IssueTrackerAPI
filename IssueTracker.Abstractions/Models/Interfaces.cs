@@ -16,7 +16,7 @@
         DateTime? DeletedAt { get; set; }
     }
 
-    public interface IHasId
+    public interface IEntityWithId
     {
         long Id { get; set; }
     }
