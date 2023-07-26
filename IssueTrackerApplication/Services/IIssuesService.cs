@@ -5,5 +5,8 @@ namespace IssueTracker.Application.Services
 {
     public interface IIssuesService : IBaseService<Issue, CreateIssueCommand, UpdateIssueCommand>
     {
+        Task<List<Issue>> GetIssuesBySprintIdAsync(long id, CancellationToken ct);
+        Task AssignSprintToIssuesAsync(List<long> ids, long sprintId, CancellationToken ct);
+        Task UnassignSprintFromIssuesAsync(long sprintId, CancellationToken ct);
     }
 }

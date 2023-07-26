@@ -27,7 +27,6 @@ namespace IssueTrackerAPI.Controllers
             _authorizationService = authorizationService;
         }
         
-        // GET: api/Users
         [HttpGet("All")]
         [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken ct)
@@ -37,7 +36,6 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<List<UserDto>>(users);
         }
 
-        // GET: api/Users/5
         [HttpGet("{id}")]
         [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<UserDto>> GetUser(long id, CancellationToken ct)
@@ -47,8 +45,6 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<UserDto>(user);
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto, CancellationToken ct)
@@ -60,8 +56,6 @@ namespace IssueTrackerAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto, CancellationToken ct)
         {
@@ -72,7 +66,6 @@ namespace IssueTrackerAPI.Controllers
             return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
 
-        // Login
         [HttpPost("login")]
         public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto, CancellationToken ct)
         {
@@ -85,7 +78,6 @@ namespace IssueTrackerAPI.Controllers
             return Ok(token);
         }
 
-        // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [OAuth(Scopes.UsersWrite)]
         public async Task<IActionResult> DeleteUser(long id, CancellationToken ct)

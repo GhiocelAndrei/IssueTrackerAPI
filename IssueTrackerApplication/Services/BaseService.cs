@@ -74,7 +74,7 @@ namespace IssueTracker.Application.Services
             return entity;
         }
 
-        public async Task DeleteAsync(long id, CancellationToken ct)
+        public virtual async Task DeleteAsync(long id, CancellationToken ct)
         {
             var entity = await GetAsync(id, ct);
             if (entity == null)
