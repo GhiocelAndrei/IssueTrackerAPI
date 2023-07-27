@@ -6,7 +6,7 @@ using IssueTracker.Abstractions.Models;
 
 namespace IssueTracker.Application.Services
 {
-    public abstract class BaseService<T, TCreateCommand, TUpdateCommand> 
+    public abstract class BaseService<T, TCreateCommand, TUpdateCommand> : IBaseService<T, TCreateCommand, TUpdateCommand>
         where T : class
         where TCreateCommand : class
         where TUpdateCommand : class

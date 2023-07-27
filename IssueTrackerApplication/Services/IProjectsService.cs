@@ -3,13 +3,8 @@ using IssueTracker.Abstractions.Models;
 
 namespace IssueTracker.Application.Services
 {
-    public interface IProjectsService
+    public interface IProjectsService : IBaseService<Project, CreateProjectCommand, UpdateProjectCommand>
     {
-        Task<List<Project>> GetAllAsync(CancellationToken ct);
-        Task<Project> GetAsync(long id, CancellationToken ct);
-        Task<Project> UpdateAsync(long id, UpdateProjectCommand command, CancellationToken ct);
-        Task<Project> CreateAsync(CreateProjectCommand entity, CancellationToken ct);
-        Task DeleteAsync(long id, CancellationToken ct);
         Task<bool> ExistsAsync(long Id, CancellationToken ct);
     }
 }
