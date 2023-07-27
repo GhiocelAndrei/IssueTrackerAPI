@@ -12,16 +12,16 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class IssuesController : ControllerBase
     {
-        private readonly IssueService _issueService;
+        private readonly IIssuesService _issueService;
         private readonly IMapper _mapper;
-        public IssuesController(IssueService issueService, IMapper mapper)
+        public IssuesController(IIssuesService issueService, IMapper mapper)
         {
             _issueService = issueService;
             _mapper = mapper;
         }
 
         // GET: api/Issues
-        [HttpGet("Issues")]
+        [HttpGet("All")]
         [OAuth(Scopes.IssuesRead)]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues(CancellationToken ct)
         {

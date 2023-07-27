@@ -13,7 +13,7 @@ namespace IssueTracker.Testing.ServicesTest
     {
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly ProjectService _sut;
+        private readonly ProjectsService _sut;
 
         public ProjectServiceTests()
         {
@@ -27,7 +27,7 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _sut = new ProjectService(_dbContext, _mapper);
+            _sut = new ProjectsService(_dbContext, _mapper);
         }
 
         public void Dispose()

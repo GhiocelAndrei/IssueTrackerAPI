@@ -13,12 +13,12 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUsersService _userService;
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
         private readonly AuthorizationService _authorizationService;
 
-        public UsersController(UserService userService, IMapper mapper, 
+        public UsersController(IUsersService userService, IMapper mapper, 
             IOptions<AppSettings> appSettings, AuthorizationService authorizationService)
         {
             _userService = userService;
@@ -28,7 +28,7 @@ namespace IssueTrackerAPI.Controllers
         }
         
         // GET: api/Users
-        [HttpGet]
+        [HttpGet("All")]
         [OAuth(Scopes.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken ct)
         {

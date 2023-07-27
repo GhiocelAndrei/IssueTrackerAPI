@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using FluentValidation.AspNetCore;
-using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
@@ -29,9 +28,9 @@ builder.Services.ApplicationAddSecurity(builder.Configuration.GetSection("AppSet
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
-    .AddScoped<IssueService>()
-    .AddScoped<ProjectService>()
-    .AddScoped<UserService>()
+    .AddScoped<IIssuesService, IssuesService>()
+    .AddScoped<IUsersService, UsersService>()
+    .AddScoped<IProjectsService, ProjectsService>()
     .AddScoped<AuthorizationService>();
 
 builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));

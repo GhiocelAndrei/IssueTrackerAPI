@@ -11,21 +11,21 @@ namespace IssueTracker.Application.Services
         where TCreateCommand : class
         where TUpdateCommand : class
     {
-        protected readonly IssueContext _dbContext;
-        protected readonly IMapper _mapper;
+        protected readonly IssueContext DbContext;
+        protected readonly IMapper Mapper;
 
-        public BaseService(IssueContext dbContext, IMapper mapper)
+        protected BaseService(IssueContext dbContext, IMapper mapper)
         {
-            _dbContext = dbContext;
-            _mapper = mapper;
+            DbContext = dbContext;
+            Mapper = mapper;
         }
 
         public Task<List<T>> GetAllAsync(CancellationToken ct)
-            => _dbContext.Set<T>().ToListAsync(ct);
+            => DbContext.Set<T>().ToListAsync(ct);
 
         public async Task<T> GetAsync(long id, CancellationToken ct)
         {
-            var issue = await _dbContext.Set<T>().FindAsync(id, ct);
+            var issue = await DbContext.Set<T>().FindAsync(id, ct);
 
             if (issue == null) 
             {
@@ -44,22 +44,20 @@ namespace IssueTracker.Application.Services
                 throw new NotFoundException("The requested entity could not be found.");
             }
 
-            _mapper.Map(command, entityModified);
+            Mapper.Map(command, entityModified);
 
             if (entityModified is IModificationTracking modificationTrackingEntity)
             {
                 modificationTrackingEntity.UpdatedAt = DateTime.UtcNow;
             }
 
-            _dbContext.Entry(entityModified).State = EntityState.Modified;
-
-            await _dbContext.SaveChangesAsync(ct);
+            await DbContext.SaveChangesAsync(ct);
             return entityModified;
         }
 
         public virtual async Task<T> CreateAsync(TCreateCommand command, CancellationToken ct)
         {
-            var entity = _mapper.Map<T>(command);
+            var entity = Mapper.Map<T>(command);
 
             if (entity is ICreationTracking creationTrackingEntity)
             {
@@ -71,8 +69,8 @@ namespace IssueTracker.Application.Services
                 softDeletableEntity.IsDeleted = false;
             }
 
-            _dbContext.Set<T>().Add(entity);
-            await _dbContext.SaveChangesAsync(ct);
+            DbContext.Set<T>().Add(entity);
+            await DbContext.SaveChangesAsync(ct);
             return entity;
         }
 
@@ -91,10 +89,10 @@ namespace IssueTracker.Application.Services
             }
             else
             {
-                _dbContext.Set<T>().Remove(entity);
+                DbContext.Set<T>().Remove(entity);
             }
 
-            await _dbContext.SaveChangesAsync(ct);
+            await DbContext.SaveChangesAsync(ct);
         }
     }
 }

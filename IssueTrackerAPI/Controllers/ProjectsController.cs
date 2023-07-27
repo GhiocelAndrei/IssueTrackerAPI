@@ -12,17 +12,17 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly ProjectService _projectService;
+        private readonly IProjectsService _projectService;
         private readonly IMapper _mapper;
 
-        public ProjectsController(ProjectService projectService, IMapper mapper)
+        public ProjectsController(IProjectsService projectService, IMapper mapper)
         {
             _projectService = projectService;
             _mapper = mapper;
         }
 
         // GET: api/Projects
-        [HttpGet]
+        [HttpGet("All")]
         [OAuth(Scopes.ProjectsRead)]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken ct)
         {

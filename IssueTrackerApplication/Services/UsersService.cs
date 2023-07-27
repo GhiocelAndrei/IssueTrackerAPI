@@ -4,22 +4,21 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace IssueTracker.Application.Services
 {
-    public class UserService : BaseService<User, CreateUserCommand, UpdateUserCommand>
+    public class UsersService : BaseService<User, CreateUserCommand, UpdateUserCommand>, IUsersService
     {
-        public UserService(IssueContext dbContext, IMapper mapper) : base(dbContext, mapper)
+        public UsersService(IssueContext dbContext, IMapper mapper) : base(dbContext, mapper)
         {
         }
 
         public Task<bool> ExistsAsync(long Id, CancellationToken ct)
-            => _dbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == Id, ct);
+            => DbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == Id, ct);
          
         public async Task<string> LoginUserAsync(LoginUserCommand userCommand, CancellationToken ct)
         {
-            var userExists = await _dbContext.Set<User>()
+            var userExists = await DbContext.Set<User>()
                 .Where(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email)
                 .SingleOrDefaultAsync(ct);
 

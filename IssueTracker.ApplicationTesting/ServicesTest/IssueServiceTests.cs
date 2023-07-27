@@ -14,8 +14,9 @@ namespace IssueTracker.Testing.ServicesTest
     {
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly IssueService _sut;
-        private readonly UserService _userServiceMock;
+        private readonly IssuesService _sut;
+        private Mock<IUsersService> _userServiceMock;
+        private Mock<IProjectsService> _projectServiceMock;
         public IssueServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -28,9 +29,10 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _userServiceMock = new UserService(_dbContext, _mapper);
+            _userServiceMock = new Mock<IUsersService>();
+            _projectServiceMock = new Mock<IProjectsService>();
 
-            _sut = new IssueService(_dbContext, _mapper, _userServiceMock);
+            _sut = new IssuesService(_dbContext, _mapper, _userServiceMock.Object, _projectServiceMock.Object);
         }
 
         public void Dispose()
@@ -159,6 +161,11 @@ namespace IssueTracker.Testing.ServicesTest
             _dbContext.Users.Add(reporter);
             _dbContext.SaveChanges();
 
+            _projectServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            _userServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
             // Act
             var result = await _sut.CreateAsync(createIssueCommand, It.IsAny<CancellationToken>());
 
@@ -188,6 +195,5 @@ namespace IssueTracker.Testing.ServicesTest
             // Assert
             Assert.False(_dbContext.Issues.Any(issue => issue.Id == issueId));
         }
-
     }
 }
