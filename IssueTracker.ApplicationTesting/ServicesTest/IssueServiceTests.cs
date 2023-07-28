@@ -15,8 +15,8 @@ namespace IssueTracker.Testing.ServicesTest
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IssuesService _sut;
-        private Mock<IUsersService> _userServiceMock;
-        private Mock<IProjectsService> _projectServiceMock;
+        private readonly Mock<IUsersService> _userServiceMock;
+        private readonly Mock<IProjectsService> _projectServiceMock;
         public IssueServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -47,7 +47,7 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             _dbContext.Issues.Add(new Issue());
             _dbContext.Issues.Add(new Issue());
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.GetAllAsync(It.IsAny<CancellationToken>());
@@ -74,7 +74,7 @@ namespace IssueTracker.Testing.ServicesTest
             var issuesId = 1;
             var issue = new Issue { Id = issuesId };
             _dbContext.Issues.Add(issue);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var returnedIssue = await _sut.GetAsync(issuesId, It.IsAny<CancellationToken>());
@@ -122,7 +122,7 @@ namespace IssueTracker.Testing.ServicesTest
             };
 
             _dbContext.Issues.Add(issue);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.UpdateAsync(id, updateIssueCommand, It.IsAny<CancellationToken>());
@@ -135,6 +135,40 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Equal(updateIssueCommand.ReporterId, result.ReporterId);
             Assert.Equal(updateIssueCommand.AssigneeId, result.AssigneeId);
             Assert.Equal(updateIssueCommand.ProjectId, result.ProjectId);
+        }
+
+        [Fact]
+        public async Task Create_ShouldThrow_WhenNonExistingProject()
+        {
+            // Arrange
+            var createIssueCommand = new CreateIssueCommand();
+
+            _projectServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
+            _userServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(async () =>
+                await _sut.CreateAsync(createIssueCommand, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task Create_ShouldThrow_WhenNonExistingUser()
+        {
+            // Arrange
+            var createIssueCommand = new CreateIssueCommand();
+
+            _projectServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            _userServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(async () =>
+                await _sut.CreateAsync(createIssueCommand, It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -159,7 +193,7 @@ namespace IssueTracker.Testing.ServicesTest
                 Id = 2
             };
             _dbContext.Users.Add(reporter);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             _projectServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);

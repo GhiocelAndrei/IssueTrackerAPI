@@ -42,7 +42,7 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             _dbContext.Users.Add(new User());
             _dbContext.Users.Add(new User());
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.GetAllAsync(It.IsAny<CancellationToken>());
@@ -68,7 +68,7 @@ namespace IssueTracker.Testing.ServicesTest
             var userId = 1;
             var user = new User { Id = userId };
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var returnedUser = await _sut.GetAsync(userId, It.IsAny<CancellationToken>());
@@ -109,7 +109,7 @@ namespace IssueTracker.Testing.ServicesTest
             };
 
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.UpdateAsync(id, updateUserCommand, It.IsAny<CancellationToken>());
@@ -179,7 +179,7 @@ namespace IssueTracker.Testing.ServicesTest
             };
 
             _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.LoginUserAsync(loginUserCommand, It.IsAny<CancellationToken>());

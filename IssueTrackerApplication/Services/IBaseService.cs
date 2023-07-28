@@ -1,12 +1,4 @@
-﻿using IssueTracker.Abstractions.Mapping;
-using IssueTracker.Abstractions.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IssueTracker.Application.Services
+﻿namespace IssueTracker.Application.Services
 {
     public interface IBaseService<T, TCreateCommand, TUpdateCommand>
         where T : class

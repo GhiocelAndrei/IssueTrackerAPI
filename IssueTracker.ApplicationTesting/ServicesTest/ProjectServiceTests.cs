@@ -42,7 +42,7 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             _dbContext.Projects.Add(new Project());
             _dbContext.Projects.Add(new Project());
-            _dbContext.SaveChanges();
+           await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.GetAllAsync(It.IsAny<CancellationToken>());
@@ -68,7 +68,7 @@ namespace IssueTracker.Testing.ServicesTest
             var projectId = 1;
             var project = new Project { Id = projectId };
             _dbContext.Projects.Add(project);
-            _dbContext.SaveChanges();
+           await _dbContext.SaveChangesAsync();
 
             // Act
             var returnedProject = await _sut.GetAsync(projectId, It.IsAny<CancellationToken>());
@@ -106,7 +106,7 @@ namespace IssueTracker.Testing.ServicesTest
             };
 
             _dbContext.Projects.Add(project);
-            _dbContext.SaveChanges();
+           await _dbContext.SaveChangesAsync();
 
             // Act
             var result = await _sut.UpdateAsync(id, updateProjectCommand, It.IsAny<CancellationToken>());

@@ -10,6 +10,7 @@ namespace IssueTracker.Application.Services
     {
         private readonly IUsersService _userService;
         private readonly IProjectsService _projectService;
+
         public IssuesService(IssueContext dbContext, IMapper mapper, IUsersService userService, IProjectsService projectService) 
             : base(dbContext, mapper)
         {
@@ -19,23 +20,17 @@ namespace IssueTracker.Application.Services
 
         public override async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct)
         {
-            var projectExists = await _projectService.ExistsAsync(entity.ProjectId, ct);
-
-            if (!projectExists)
+            if (!await _projectService.ExistsAsync(entity.ProjectId, ct))
             {
                 throw new InvalidInputException("Project ID does not exits");
             }
 
-            var reporterExists = await _userService.ExistsAsync(entity.ReporterId, ct);
-
-            if (!reporterExists)
+            if (!await _userService.ExistsAsync(entity.ReporterId, ct))
             {
                 throw new InvalidInputException("Reporter ID does not exits");
             }
 
-            var assigneeExists = await _userService.ExistsAsync(entity.AssigneeId, ct);
-
-            if (!assigneeExists)
+            if (!await _userService.ExistsAsync(entity.AssigneeId, ct))
             {
                 throw new InvalidInputException("Assignee ID does not exits");
             }

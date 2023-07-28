@@ -12,7 +12,7 @@ namespace IssueTracker.Application.Services
         {
         }
 
-        public Task<bool> ExistsAsync(long Id, CancellationToken ct)
-           => DbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == Id, ct);
+        public Task<bool> ExistsAsync(long id, CancellationToken ct)
+           => DbContext.Set<Project>().AsNoTracking().AnyAsync(u => u.Id == id, ct);
     }
 }
