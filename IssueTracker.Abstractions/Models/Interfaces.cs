@@ -15,4 +15,9 @@
         bool IsDeleted { get; set; }
         DateTime? DeletedAt { get; set; }
     }
+
+    public interface IEntityWithId
+    {
+        long Id { get; set; }
+    }
 }

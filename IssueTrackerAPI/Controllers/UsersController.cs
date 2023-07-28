@@ -13,12 +13,12 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUsersService _userService;
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
         private readonly AuthorizationService _authorizationService;
 
-        public UsersController(UserService userService, IMapper mapper, 
+        public UsersController(IUsersService userService, IMapper mapper, 
             IOptions<AppSettings> appSettings, AuthorizationService authorizationService)
         {
             _userService = userService;
@@ -28,11 +28,11 @@ namespace IssueTrackerAPI.Controllers
         }
         
         // GET: api/Users
-        [HttpGet]
+        [HttpGet("All")]
         [OAuth(Scopes.UsersRead)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken ct)
         {
-            var users = await _userService.GetAll();
+            var users = await _userService.GetAllAsync(ct);
 
             return _mapper.Map<List<UserDto>>(users);
         }
@@ -40,9 +40,9 @@ namespace IssueTrackerAPI.Controllers
         // GET: api/Users/5
         [HttpGet("{id}")]
         [OAuth(Scopes.UsersRead)]
-        public async Task<ActionResult<UserDto>> GetUser(long id)
+        public async Task<ActionResult<UserDto>> GetUser(long id, CancellationToken ct)
         {
-            var user = await _userService.Get(id);
+            var user = await _userService.GetAsync(id, ct);
 
             return _mapper.Map<UserDto>(user);
         }
@@ -51,11 +51,11 @@ namespace IssueTrackerAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [OAuth(Scopes.UsersWrite)]
-        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto)
+        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto, CancellationToken ct)
         {
             var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
 
-            await _userService.Update(id, userCommand);
+            await _userService.UpdateAsync(id, userCommand, ct);
 
             return NoContent();
         }
@@ -63,22 +63,22 @@ namespace IssueTrackerAPI.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto)
+        public async Task<ActionResult<User>> PostUser(UserCreatingDto userDto, CancellationToken ct)
         {
             var userCommand = _mapper.Map<CreateUserCommand>(userDto);
 
-            var createdUser = await _userService.Create(userCommand);
+            var createdUser = await _userService.CreateAsync(userCommand, ct);
 
             return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
 
         // Login
         [HttpPost("login")]
-        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto)
+        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto, CancellationToken ct)
         {
             var userCommand = _mapper.Map<LoginUserCommand>(userDto);
 
-            var role = await _userService.LoginUserAsync(userCommand);
+            var role = await _userService.LoginUserAsync(userCommand, ct);
 
             string token = _authorizationService.CreateToken(role, _appSettings.Secret);
 
@@ -88,9 +88,9 @@ namespace IssueTrackerAPI.Controllers
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [OAuth(Scopes.UsersWrite)]
-        public async Task<IActionResult> DeleteUser(long id)
+        public async Task<IActionResult> DeleteUser(long id, CancellationToken ct)
         {
-            await _userService.Delete(id);
+            await _userService.DeleteAsync(id, ct);
 
             return NoContent();
         }

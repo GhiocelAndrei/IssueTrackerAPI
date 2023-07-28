@@ -12,21 +12,21 @@ namespace IssueTrackerAPI.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly ProjectService _projectService;
+        private readonly IProjectsService _projectService;
         private readonly IMapper _mapper;
 
-        public ProjectsController(ProjectService projectService, IMapper mapper)
+        public ProjectsController(IProjectsService projectService, IMapper mapper)
         {
             _projectService = projectService;
             _mapper = mapper;
         }
 
         // GET: api/Projects
-        [HttpGet]
+        [HttpGet("All")]
         [OAuth(Scopes.ProjectsRead)]
-        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken ct)
         {
-            var projects = await _projectService.GetAll();
+            var projects = await _projectService.GetAllAsync(ct);
 
             return _mapper.Map<List<ProjectDto>>(projects);
         }
@@ -34,9 +34,9 @@ namespace IssueTrackerAPI.Controllers
         // GET: api/Projects/5
         [HttpGet("{id}")]
         [OAuth(Scopes.ProjectsRead)]
-        public async Task<ActionResult<ProjectDto>> GetProject(long id)
+        public async Task<ActionResult<ProjectDto>> GetProject(long id, CancellationToken ct)
         {
-            var project = await _projectService.Get(id);
+            var project = await _projectService.GetAsync(id, ct);
 
             return _mapper.Map<ProjectDto>(project);
         }
@@ -45,11 +45,11 @@ namespace IssueTrackerAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [OAuth(Scopes.ProjectsWrite)]
-        public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto)
+        public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto, CancellationToken ct)
         {
             var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
 
-            await _projectService.Update(id, projectCommand);
+            await _projectService.UpdateAsync(id, projectCommand, ct);
 
             return NoContent();
         }
@@ -58,11 +58,11 @@ namespace IssueTrackerAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [OAuth(Scopes.ProjectsWrite)]
-        public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto)
+        public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto, CancellationToken ct)
         {
             var projectCommand = _mapper.Map<CreateProjectCommand>(projectDto);
 
-            var createdProject = await _projectService.Create(projectCommand);
+            var createdProject = await _projectService.CreateAsync(projectCommand, ct);
 
             return CreatedAtAction("GetProject", new { id = createdProject.Id }, createdProject);
         }
@@ -70,9 +70,9 @@ namespace IssueTrackerAPI.Controllers
         // DELETE: api/Projects/5
         [HttpDelete("{id}")]
         [OAuth(Scopes.ProjectsWrite)]
-        public async Task<IActionResult> DeleteProject(long id)
+        public async Task<IActionResult> DeleteProject(long id, CancellationToken ct)
         {
-            await _projectService.Delete(id);
+            await _projectService.DeleteAsync(id, ct);
 
             return NoContent();
         }
