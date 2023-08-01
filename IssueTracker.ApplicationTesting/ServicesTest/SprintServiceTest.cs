@@ -153,7 +153,7 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
         }
 
         [Fact]
-        public async Task Delete_ShouldCallDeleteAsyncOnRepository()
+        public async Task Delete_ShouldSetIsDeletedPropertyToTrue()
         {
             // Arrange
             var sprintId = 1;
@@ -165,7 +165,9 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
             await _sut.DeleteAsync(sprintId, It.IsAny<CancellationToken>());
 
             // Assert
-            Assert.False(_dbContext.Sprints.Any(sprint => sprint.Id == sprintId));
+            var sprint = _dbContext.Sprints.SingleOrDefault(s => s.Id == sprintId);
+            Assert.NotNull(sprint);
+            Assert.True(sprint.IsDeleted);
         }
 
         [Fact]

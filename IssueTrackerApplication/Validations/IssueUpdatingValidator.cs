@@ -7,22 +7,23 @@ namespace IssueTracker.Application.Validations
     {
         public IssueUpdatingValidator()
         {
-
-            RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required.");
-
-            RuleFor(x => x.Description)
-                .NotEmpty().WithMessage("Description is required.");
-
-            RuleFor(x => x.ProjectId)
-                 .NotEmpty().WithMessage("ProjectId is required.");
-
-            RuleFor(x => x.ReporterId)
-                .NotEmpty().WithMessage("ReporterId is required.");
+            RuleFor(dto => dto)
+                .Must(HaveAtLeastOnePropertyNotNull)
+                .WithMessage("At least one property must be updated");
 
             RuleFor(x => x.Priority)
-                .IsInEnum()
-                .WithMessage("Invalid Priority.");
+               .IsInEnum()
+               .WithMessage("Invalid Priority.");
+        }
+
+        private bool HaveAtLeastOnePropertyNotNull(IssueUpdatingDto dto)
+        {
+            return dto.ProjectId != null ||
+                   !string.IsNullOrWhiteSpace(dto.Title) ||
+                   !string.IsNullOrWhiteSpace(dto.Description) ||
+                   dto.Priority != null ||
+                   dto.ReporterId != null ||
+                   dto.AssigneeId != null;
         }
     }
 }

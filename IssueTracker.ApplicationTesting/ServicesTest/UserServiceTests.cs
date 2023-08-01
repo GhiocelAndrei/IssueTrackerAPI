@@ -146,7 +146,7 @@ namespace IssueTracker.Testing.ServicesTest
         }
 
         [Fact]
-        public async Task Delete_ShouldDeleteAndReturnDeletedUser()
+        public async Task Delete_ShouldSetIsDeletedPropertyToTrue()
         {
             // Arrange
             var userId = 1;
@@ -158,7 +158,9 @@ namespace IssueTracker.Testing.ServicesTest
             await _sut.DeleteAsync(userId, It.IsAny<CancellationToken>());
 
             // Assert
-            Assert.False(_dbContext.Users.Any(user => user.Id == userId));
+            var user = _dbContext.Users.SingleOrDefault(u => u.Id == userId);
+            Assert.NotNull(user);
+            Assert.True(user.IsDeleted);
         }
 
         [Fact]
