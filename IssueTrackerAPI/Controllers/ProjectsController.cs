@@ -21,7 +21,6 @@ namespace IssueTrackerAPI.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/Projects
         [HttpGet("All")]
         [OAuth(Scopes.ProjectsRead)]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken ct)
@@ -31,7 +30,6 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<List<ProjectDto>>(projects);
         }
 
-        // GET: api/Projects/5
         [HttpGet("{id}")]
         [OAuth(Scopes.ProjectsRead)]
         public async Task<ActionResult<ProjectDto>> GetProject(long id, CancellationToken ct)
@@ -41,8 +39,6 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<ProjectDto>(project);
         }
 
-        // PUT: api/Projects/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [OAuth(Scopes.ProjectsWrite)]
         public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto, CancellationToken ct)
@@ -54,8 +50,6 @@ namespace IssueTrackerAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Projects
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [OAuth(Scopes.ProjectsWrite)]
         public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto, CancellationToken ct)
@@ -67,7 +61,6 @@ namespace IssueTrackerAPI.Controllers
             return CreatedAtAction("GetProject", new { id = createdProject.Id }, createdProject);
         }
 
-        // DELETE: api/Projects/5
         [HttpDelete("{id}")]
         [OAuth(Scopes.ProjectsWrite)]
         public async Task<IActionResult> DeleteProject(long id, CancellationToken ct)

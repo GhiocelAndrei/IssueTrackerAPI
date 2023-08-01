@@ -229,5 +229,46 @@ namespace IssueTracker.Testing.ServicesTest
             // Assert
             Assert.False(_dbContext.Issues.Any(issue => issue.Id == issueId));
         }
+
+        [Fact]
+        public async Task AssignSprintToIssuesAsync_ShouldThrowInvalidInputException_WhenIssueWithIdNotFound()
+        {
+            // Arrange
+            var sprintId = 1;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(async () =>
+                await _sut.AssignSprintToIssuesAsync(new List<long> { 1 }, sprintId, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task AssignSprintToIssuesAsync_ShouldAssignSprintToIssues()
+        {
+            // Arrange
+            var sprintId = 1;
+
+            // Create some issues in the database
+            var issue1 = new Issue { Id = 1 };
+            var issue2 = new Issue { Id = 2 };
+            var issue3 = new Issue { Id = 3 };
+            _dbContext.Issues.AddRange(issue1, issue2, issue3);
+            await _dbContext.SaveChangesAsync();
+
+            // Convert ids to long (assuming they are actually long)
+            var idsToAssign = new List<long> { 1, 2 };
+
+            // Act
+            await _sut.AssignSprintToIssuesAsync(idsToAssign, sprintId, It.IsAny<CancellationToken>());
+
+            // Assert
+            var updatedIssue1 = await _dbContext.Issues.FindAsync(1L);
+            var updatedIssue2 = await _dbContext.Issues.FindAsync(2L);
+            var unchangedIssue3 = await _dbContext.Issues.FindAsync(3L);
+
+            Assert.Equal(sprintId, updatedIssue1.SprintId);
+            Assert.Equal(sprintId, updatedIssue2.SprintId);
+            Assert.Null(unchangedIssue3.SprintId);
+        }
+
     }
 }

@@ -13,7 +13,8 @@ namespace IssueTracker.Application.Authorization
             {
                 new Claim("scope", Scopes.IssuesRead),
                 new Claim("scope", Scopes.IssuesWrite),
-                new Claim("scope", Scopes.ProjectsRead)
+                new Claim("scope", Scopes.ProjectsRead),
+                new Claim("scope" ,Scopes.SprintsRead)
             };
 
             if (role == "Admin")
@@ -21,6 +22,7 @@ namespace IssueTracker.Application.Authorization
                 claims.Add(new Claim("scope", Scopes.ProjectsWrite));
                 claims.Add(new Claim("scope", Scopes.UsersRead));
                 claims.Add(new Claim("scope", Scopes.UsersWrite));
+                claims.Add(new Claim("scope", Scopes.SprintsWrite));
             }
 
             return claims;

@@ -10,5 +10,8 @@
 
         public const string UsersRead = "UsersRead";
         public const string UsersWrite = "UsersWrite";
+
+        public const string SprintsRead = "SprintsRead";
+        public const string SprintsWrite = "SprintsWrite";
     }
 }
