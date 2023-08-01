@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
+using IssueTracker.Abstractions.Enums;
 
 namespace IssueTracker.Application.Services
 {
@@ -8,6 +9,12 @@ namespace IssueTracker.Application.Services
     {
         public AutoMapperProfile()
         {
+            CreateMap<long?, long>().ConvertUsing((src, dest) => src ?? dest);
+            CreateMap<string?, string>().ConvertUsing((src, dest) => src ?? dest);
+            CreateMap<Priority?, Priority>().ConvertUsing((src, dest) => src ?? dest);
+            CreateMap<bool?, bool>().ConvertUsing((src, dest) => src ?? dest);
+            CreateMap<DateTime?, DateTime>().ConvertUsing((src, dest) => src ?? dest);
+
             // Issue Mappings
             CreateMap<Issue, IssueDto>();
 
@@ -15,9 +22,10 @@ namespace IssueTracker.Application.Services
             CreateMap<IssueCreatingDto, CreateIssueCommand>();
             CreateMap<IssueCreatingDto, Issue>();
 
-            CreateMap<UpdateIssueCommand, Issue>();
-            CreateMap<IssueUpdatingDto, UpdateIssueCommand>();
-            CreateMap<IssueUpdatingDto, Issue>();
+            CreateMap<UpdateIssueCommand, Issue>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<IssueUpdatingDto, UpdateIssueCommand>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             // Project Mapping
             CreateMap<Project, ProjectDto>();
@@ -26,9 +34,10 @@ namespace IssueTracker.Application.Services
             CreateMap<ProjectCreatingDto, CreateProjectCommand>();
             CreateMap<ProjectCreatingDto, Project>();
 
-            CreateMap<UpdateProjectCommand, Project>();
-            CreateMap<ProjectUpdatingDto, UpdateProjectCommand>();
-            CreateMap<ProjectUpdatingDto, Project>();
+            CreateMap<UpdateProjectCommand, Project>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<ProjectUpdatingDto, UpdateProjectCommand>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             // User Mapping
             CreateMap<User, UserDto>();
@@ -37,9 +46,10 @@ namespace IssueTracker.Application.Services
             CreateMap<UserCreatingDto, CreateUserCommand>();
             CreateMap<UserCreatingDto, User>();
 
-            CreateMap<UpdateUserCommand, User>();
-            CreateMap<UserUpdatingDto, UpdateUserCommand>();
-            CreateMap<UserUpdatingDto, User>();
+            CreateMap<UpdateUserCommand, User>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<UserUpdatingDto, UpdateUserCommand>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<UserLoginDto, LoginUserCommand>();
 
@@ -50,9 +60,10 @@ namespace IssueTracker.Application.Services
             CreateMap<SprintCreatingDto, CreateSprintCommand>();
             CreateMap<SprintCreatingDto, Sprint>();
 
-            CreateMap<UpdateSprintCommand, Sprint>();
-            CreateMap<SprintUpdatingDto, UpdateSprintCommand>();
-            CreateMap<SprintUpdatingDto, Sprint>();
+            CreateMap<UpdateSprintCommand, Sprint>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<SprintUpdatingDto, UpdateSprintCommand>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<SprintCreatingWithIssuesDto, CreateSprintWithIssuesCommand>();
         }
