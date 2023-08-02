@@ -7,6 +7,10 @@ using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using IssueTracker.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch;
+using FluentValidation;
+using Newtonsoft.Json;
+using FluentValidation.Results;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -15,7 +19,9 @@ namespace IssueTracker.Testing.ServicesTest
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ProjectsService _sut;
+        private readonly Mock<IValidatorFactory> _validatorFactoryMock;
         private readonly Mock<IProjectRepository> projectRepositoryMock;
+        
         public ProjectServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -28,9 +34,10 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
+            _validatorFactoryMock = new Mock<IValidatorFactory>();
             projectRepositoryMock = new Mock<IProjectRepository>();
 
-            _sut = new ProjectsService(_dbContext, _mapper, projectRepositoryMock.Object);
+            _sut = new ProjectsService(_dbContext, _mapper, projectRepositoryMock.Object, _validatorFactoryMock.Object);
         }
 
         public void Dispose()
@@ -151,6 +158,97 @@ namespace IssueTracker.Testing.ServicesTest
 
             // Assert
             Assert.False(_dbContext.Issues.Any(project => project.Id == projectId));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowNotFoundException_WhenProjectNotFound()
+        {
+            // Arrange
+            var id = 1;
+            var jsonPatchDocument = new JsonPatchDocument<ProjectUpdatingDto>();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.PatchAsync(id, jsonPatchDocument, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowInvalidInputException_WhenInvalidPathInPatchDocument()
+        {
+            // Arrange
+            var projectId = 1;
+            var project = new Project { Id = projectId };
+
+            _dbContext.Projects.Add(project);
+            await _dbContext.SaveChangesAsync();
+
+            string jsonPatch = @"
+            [
+                {
+                    ""op"": ""replace"",
+                    ""path"": ""/CreatedAt"",
+                    ""value"": ""2023-07-31T15:00:03.42""
+                }
+            ]";
+
+            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<ProjectUpdatingDto>>(jsonPatch);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(projectId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowsInvalidInputException_WhenInvalidValueInPatchDocument()
+        {
+            // Arrange
+            var projectId = 1;
+            var project = new Project { Id = projectId };
+
+            _dbContext.Projects.Add(project);
+            await _dbContext.SaveChangesAsync();
+
+            var patchDoc = new JsonPatchDocument<ProjectUpdatingDto>();
+            patchDoc.Replace(i => i.Name, null);
+
+            var mockValidator = new Mock<IValidator<ProjectUpdatingDto>>();
+            var validationResult = new ValidationResult(new List<ValidationFailure> { new ValidationFailure("Name", "Name cannot be null") });
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<ProjectUpdatingDto>(), default)).ReturnsAsync(validationResult);
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<ProjectUpdatingDto>()).Returns(mockValidator.Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(projectId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldApplyPatchToProjectAndSaveChanges()
+        {
+            // Arrange
+            var id = 1L;
+            var project = new Project
+            {
+                Id = id,
+                Name = "Old Name"
+            };
+
+            _dbContext.Projects.Add(project);
+            await _dbContext.SaveChangesAsync();
+
+            var patchedName = "Patched Name";
+
+            var jsonPatchDocument = new JsonPatchDocument<ProjectUpdatingDto>();
+            jsonPatchDocument.Replace(x => x.Name, patchedName);
+
+            var mockValidator = new Mock<IValidator<ProjectUpdatingDto>>();
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<ProjectUpdatingDto>(), default)).ReturnsAsync(new ValidationResult());
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<ProjectUpdatingDto>()).Returns(mockValidator.Object);
+            // Act
+            await _sut.PatchAsync(id, jsonPatchDocument, CancellationToken.None);
+            var updatedProject = await _dbContext.Projects.FindAsync(id);
+
+            // Assert
+            Assert.Equal(project.Id, updatedProject.Id);
+            Assert.Equal(patchedName, updatedProject.Name);
         }
     }
 }

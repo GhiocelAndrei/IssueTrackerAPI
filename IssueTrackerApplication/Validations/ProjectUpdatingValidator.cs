@@ -7,14 +7,8 @@ namespace IssueTracker.Application.Validations
     {
         public ProjectUpdatingValidator()
         {
-            RuleFor(dto => dto)
-                .Must(HaveAtLeastOnePropertyNotNull)
-                .WithMessage("At least one property must be updated");
-        }
-
-        private bool HaveAtLeastOnePropertyNotNull(ProjectUpdatingDto dto)
-        {
-            return !string.IsNullOrWhiteSpace(dto.Name);
+            RuleFor(x => x.Name)
+               .NotEmpty().WithMessage("Name is required.");
         }
     }
 }

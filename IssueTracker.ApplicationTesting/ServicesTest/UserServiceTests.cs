@@ -6,6 +6,10 @@ using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch;
+using FluentValidation;
+using Newtonsoft.Json;
+using FluentValidation.Results;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -14,6 +18,7 @@ namespace IssueTracker.Testing.ServicesTest
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly UsersService _sut;
+        private readonly Mock<IValidatorFactory> _validatorFactoryMock;
 
         public UserServiceTests()
         {
@@ -27,7 +32,9 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _sut = new UsersService(_dbContext, _mapper);
+            _validatorFactoryMock = new Mock<IValidatorFactory>();
+
+            _sut = new UsersService(_dbContext, _mapper, _validatorFactoryMock.Object);
         }
 
         public void Dispose()
@@ -188,6 +195,103 @@ namespace IssueTracker.Testing.ServicesTest
 
             // Assert
             Assert.Equal(user.Role, result);
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowNotFoundException_WhenUserNotFound()
+        {
+            // Arrange
+            var id = 1;
+            var jsonPatchDocument = new JsonPatchDocument<UserUpdatingDto>();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.PatchAsync(id, jsonPatchDocument, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowInvalidInputException_WhenInvalidPathInPatchDocument()
+        {
+            // Arrange
+            var userId = 1;
+            var user = new User { Id = userId };
+
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+
+            string jsonPatch = @"
+            [
+                {
+                    ""op"": ""replace"",
+                    ""path"": ""/DeletedAt"",
+                    ""value"": ""2023-07-31T15:00:03.42""
+                }
+            ]";
+
+            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<UserUpdatingDto>>(jsonPatch);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(userId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowsInvalidInputException_WhenInvalidValueInPatchDocument()
+        {
+            // Arrange
+            var userId = 1;
+            var user = new User { Id = userId };
+
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+
+            var patchDoc = new JsonPatchDocument<UserUpdatingDto>();
+            patchDoc.Replace(i => i.Name, null);
+
+            var mockValidator = new Mock<IValidator<UserUpdatingDto>>();
+            var validationResult = new ValidationResult(new List<ValidationFailure> { new ValidationFailure("Name", "Name cannot be null") });
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<UserUpdatingDto>(), default)).ReturnsAsync(validationResult);
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<UserUpdatingDto>()).Returns(mockValidator.Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(userId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldApplyPatchToUserAndSaveChanges()
+        {
+            // Arrange
+            var id = 1L;
+            var user = new User
+            {
+                Id = id,
+                Name = "New User",
+                Email = "newuser@yahoo.com",
+                Role = "User"
+            };
+
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+
+            var patchedName = "Patched Name";
+            var patchedRole = "Admin";
+
+            var jsonPatchDocument = new JsonPatchDocument<UserUpdatingDto>();
+            jsonPatchDocument.Replace(x => x.Name, patchedName);
+            jsonPatchDocument.Replace(x => x.Role, patchedRole);
+
+            var mockValidator = new Mock<IValidator<UserUpdatingDto>>();
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<UserUpdatingDto>(), default)).ReturnsAsync(new ValidationResult());
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<UserUpdatingDto>()).Returns(mockValidator.Object);
+            // Act
+            await _sut.PatchAsync(id, jsonPatchDocument, CancellationToken.None);
+            var updatedUser = await _dbContext.Users.FindAsync(id);
+
+            // Assert
+            Assert.Equal(user.Id, updatedUser.Id);
+            Assert.Equal(patchedName, updatedUser.Name);
+            Assert.Equal(patchedRole, updatedUser.Role);
+            Assert.Equal(user.Email, updatedUser.Email);
         }
     }
 }

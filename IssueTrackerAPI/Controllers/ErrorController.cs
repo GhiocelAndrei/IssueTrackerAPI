@@ -20,6 +20,9 @@ namespace IssueTrackerAPI.Controllers
                 case InvalidInputException invalidInputException:
                     return BadRequest(invalidInputException.Message);
 
+                case MissingValidatorException missingValidatorException:
+                    return StatusCode(500, missingValidatorException.Message);
+
                 default:
                     return Problem();
             }            
@@ -42,6 +45,9 @@ namespace IssueTrackerAPI.Controllers
 
                 case InvalidInputException invalidInputException:
                     return BadRequest(FormatedMessage(invalidInputException.Message, invalidInputException.StackTrace));
+
+                case MissingValidatorException missingValidatorException:
+                    return StatusCode(500, FormatedMessage(missingValidatorException.Message, missingValidatorException.StackTrace));
 
                 default:
                     return Problem(

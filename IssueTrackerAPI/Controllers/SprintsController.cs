@@ -5,6 +5,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Application.Authorization;
 using IssueTracker.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -39,15 +40,13 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<SprintDto>(sprint);
         }
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         [OAuth(Scopes.SprintsWrite)]
-        public async Task<IActionResult> PutSprint(long id, SprintUpdatingDto sprintDto, CancellationToken ct)
+        public async Task<SprintDto> PatchSprint(long id, JsonPatchDocument<SprintUpdatingDto> sprintPatch, CancellationToken ct)
         {
-            var sprintCommand = _mapper.Map<UpdateSprintCommand>(sprintDto);
+            var sprint = await _sprintsService.PatchAsync(id, sprintPatch, ct);
 
-            await _sprintsService.UpdateAsync(id, sprintCommand, ct);
-
-            return NoContent();
+            return _mapper.Map<SprintDto>(sprint);
         }
 
         [HttpPost]

@@ -4,14 +4,19 @@ using AutoMapper;
 using IssueTracker.DataAccess.DatabaseContext;
 using IssueTracker.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace IssueTracker.Application.Services
 {
-    public class ProjectsService : BaseService<Project, CreateProjectCommand, UpdateProjectCommand>, IProjectsService
+    public class ProjectsService : BaseService<Project>, IProjectsService
     {
-        private readonly IProjectRepository _projectRepository; 
-
-        public ProjectsService(IssueContext dbContext, IMapper mapper, IProjectRepository projectRepository) : base(dbContext, mapper)
+    	private readonly IProjectRepository _projectRepository;
+    	
+        public ProjectsService(IssueContext dbContext, 
+            IMapper mapper,
+ 		    IProjectRepository projectRepository,
+            IValidatorFactory validatorFactory) 
+            : base(dbContext, mapper, validatorFactory)
         {
             _projectRepository = projectRepository;
         }

@@ -3,7 +3,7 @@ using IssueTracker.Abstractions.Models;
 
 namespace IssueTracker.Application.Services
 {
-    public interface ISprintsService : IBaseService<Sprint, CreateSprintCommand, UpdateSprintCommand>
+    public interface ISprintsService : IBaseService<Sprint>
     {
         Task CloseSprint(long id, CancellationToken ct);
 

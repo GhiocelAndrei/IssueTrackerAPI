@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Application.Services;
@@ -45,15 +46,13 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<UserDto>(user);
         }
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         [OAuth(Scopes.UsersWrite)]
-        public async Task<IActionResult> PutUser(long id, UserUpdatingDto userDto, CancellationToken ct)
+        public async Task<UserDto> PatchUser(long id, JsonPatchDocument<UserUpdatingDto> userPatch, CancellationToken ct)
         {
-            var userCommand = _mapper.Map<UpdateUserCommand>(userDto);
+            var user = await _userService.PatchAsync(id, userPatch, ct);
 
-            await _userService.UpdateAsync(id, userCommand, ct);
-
-            return NoContent();
+            return _mapper.Map<UserDto>(user);
         }
 
         [HttpPost]

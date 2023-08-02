@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Definitions;
@@ -39,15 +40,13 @@ namespace IssueTrackerAPI.Controllers
             return _mapper.Map<ProjectDto>(project);
         }
 
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         [OAuth(Scopes.ProjectsWrite)]
-        public async Task<IActionResult> PutProject(long id, ProjectUpdatingDto projectDto, CancellationToken ct)
+        public async Task<ProjectDto> PatchProject(long id, JsonPatchDocument<ProjectUpdatingDto> projectPatch, CancellationToken ct)
         {
-            var projectCommand = _mapper.Map<UpdateProjectCommand>(projectDto);
+            var project = await _projectService.PatchAsync(id, projectPatch, ct);
 
-            await _projectService.UpdateAsync(id, projectCommand, ct);
-
-            return NoContent();
+            return _mapper.Map<ProjectDto>(project);
         }
 
         [HttpPost]
