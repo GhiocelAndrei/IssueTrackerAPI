@@ -5,6 +5,7 @@ namespace IssueTracker.Abstractions.Models
     public class Issue : IEntityWithId, ICreationTracking, IModificationTracking, ISoftDeletable
     {
         public long Id { get; set; }
+        public string ExternalId { get; set; }
         public long ProjectId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using IssueTracker.Abstractions.Models;
+using IssueTracker.Abstractions.Definitions;
 
 namespace IssueTracker.DataAccess.DatabaseContext
 {
@@ -13,6 +14,7 @@ namespace IssueTracker.DataAccess.DatabaseContext
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Project> Projects { get; set; } = null!;
         public DbSet<Sprint> Sprints { get; set; } = null!;
+        public DbSet<ScalarLong> ScalarLong { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +31,8 @@ namespace IssueTracker.DataAccess.DatabaseContext
             // Filters for models that implement ISoftDeletable
             modelBuilder.Entity<Issue>().HasQueryFilter(i => !i.IsDeleted);
             modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
+
+            modelBuilder.Entity<ScalarLong>().HasNoKey();
         }
     }
 

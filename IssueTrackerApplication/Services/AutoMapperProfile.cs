@@ -10,7 +10,6 @@ namespace IssueTracker.Application.Services
         public AutoMapperProfile()
         {
             CreateMap<long?, long>().ConvertUsing((src, dest) => src ?? dest);
-            CreateMap<string?, string>().ConvertUsing((src, dest) => src ?? dest);
             CreateMap<Priority?, Priority>().ConvertUsing((src, dest) => src ?? dest);
             CreateMap<bool?, bool>().ConvertUsing((src, dest) => src ?? dest);
             CreateMap<DateTime?, DateTime>().ConvertUsing((src, dest) => src ?? dest);

@@ -200,18 +200,21 @@ namespace IssueTracker.Testing.ServicesTest
 
             _userServiceMock.Setup(p => p.ExistsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
+
+            _projectServiceMock.Setup(p => p.GetIssueSequenceAsync(createIssueCommand.ProjectId, It.IsAny<CancellationToken>())).ReturnsAsync(123);
+            _projectServiceMock.Setup(p => p.GetProjectCodeAsync(createIssueCommand.ProjectId, It.IsAny<CancellationToken>())).ReturnsAsync("PROJ");
             // Act
             var result = await _sut.CreateAsync(createIssueCommand, It.IsAny<CancellationToken>());
 
             // Assert
             Assert.Equal(expectedIssue.Id, result.Id);
+            Assert.Equal("PROJ-123", result.ExternalId);
             Assert.Equal(expectedIssue.Title, result.Title);
             Assert.Equal(expectedIssue.Description, result.Description);
             Assert.Equal(expectedIssue.Priority, result.Priority);
             Assert.Equal(expectedIssue.ReporterId, result.ReporterId);
             Assert.Equal(expectedIssue.AssigneeId, result.AssigneeId);
             Assert.Equal(expectedIssue.ProjectId, result.ProjectId);
-
         }
 
         [Fact]

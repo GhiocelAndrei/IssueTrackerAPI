@@ -5,6 +5,7 @@ namespace IssueTracker.Abstractions.Mapping
     public class IssueDto
     {
         public long Id { get; set; }
+        public string ExternalId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -22,6 +23,7 @@ namespace IssueTracker.Abstractions.Mapping
 
     public class CreateIssueCommand
     {
+        public string ExternalId { get; set; }
         public long ProjectId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
