@@ -13,16 +13,19 @@ namespace IssueTracker.Application.Services
     {
         private readonly IUsersService _userService;
         private readonly IProjectsService _projectService;
+        private readonly IUnitOfWork _transactionUnit;
 
         public IssuesService(IssueContext dbContext,
             IMapper mapper,
             IValidatorFactory validatorFactory,
             IUsersService userService,
-            IProjectsService projectService)
+            IProjectsService projectService,
+            IUnitOfWork transactionUnit)
             : base(dbContext, mapper, validatorFactory)
         {
             _userService = userService;
             _projectService = projectService;
+            _transactionUnit = transactionUnit;
         }
 
         public async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct) 
@@ -57,38 +60,38 @@ namespace IssueTracker.Application.Services
 
         public async Task AssignSprintToIssuesAsync(List<long> ids, long sprintId, CancellationToken ct)
         {
-            using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-            var issuesModified = await DbContext.Issues
+            await _transactionUnit.ExecuteWithTransactionAsync(async () =>
+            {
+                var issuesModified = await DbContext.Issues
                 .Where(issue => ids.Contains(issue.Id)).ToListAsync(ct);
 
-            if (issuesModified.Count < ids.Count)
-                throw new InvalidInputException("One of the provided Ids does not correspond to any existing Issue.");
+                if (issuesModified.Count < ids.Count)
+                    throw new InvalidInputException("One of the provided Ids does not correspond to any existing Issue.");
 
-            foreach (var issue in issuesModified)
-            {
-                issue.SprintId = sprintId;
-                issue.UpdatedAt = DateTime.UtcNow;
-            }
+                foreach (var issue in issuesModified)
+                {
+                    issue.SprintId = sprintId;
+                    issue.UpdatedAt = DateTime.UtcNow;
+                }
 
-            await DbContext.SaveChangesAsync(ct);
-            transactionScope.Complete();
+                await DbContext.SaveChangesAsync(ct);
+            });
         }
 
         public async Task UnassignSprintFromIssuesAsync(long sprintId, CancellationToken ct)
         {
-            using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-            var assignedIssues = await GetIssuesBySprintIdAsync(sprintId, ct);
-
-            foreach (var issue in assignedIssues)
+            await _transactionUnit.ExecuteWithTransactionAsync(async () =>
             {
-                issue.SprintId = null;
-                issue.UpdatedAt = DateTime.UtcNow;
-            }
+                var assignedIssues = await GetIssuesBySprintIdAsync(sprintId, ct);
 
-            await DbContext.SaveChangesAsync(ct);
-            transactionScope.Complete();
+                foreach (var issue in assignedIssues)
+                {
+                    issue.SprintId = null;
+                    issue.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await DbContext.SaveChangesAsync(ct);
+            });
         }
 
         public Task<List<Issue>> GetIssuesBySprintIdAsync(long id, CancellationToken ct)

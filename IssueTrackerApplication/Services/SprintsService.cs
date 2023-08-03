@@ -11,24 +11,27 @@ namespace IssueTracker.Application.Services
     public class SprintsService : BaseService<Sprint>, ISprintsService
     {
         private readonly IIssuesService _issueService;
+        private readonly IUnitOfWork _transactionUnit;
+
         public SprintsService(IssueContext dbContext, 
             IMapper mapper, 
             IValidatorFactory allValidators,
-            IIssuesService issueService) 
+            IIssuesService issueService,
+            IUnitOfWork transactionUnit) 
             : base(dbContext, mapper, allValidators)
         {
             _issueService = issueService;
+            _transactionUnit = transactionUnit;
         }
 
         public override async Task DeleteAsync(long id, CancellationToken ct)
         {
-            using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            await _transactionUnit.ExecuteWithTransactionAsync(async () =>
+            {
+                await _issueService.UnassignSprintFromIssuesAsync(id, ct);
 
-            await _issueService.UnassignSprintFromIssuesAsync(id, ct);
-
-            await base.DeleteAsync(id, ct);
-
-            transactionScope.Complete();
+                await base.DeleteAsync(id, ct);
+            });
         }
 
         public async Task CloseSprint(long id, CancellationToken ct)
@@ -45,15 +48,12 @@ namespace IssueTracker.Application.Services
 
         public async Task CreateSprintWithIssuesAsync(CreateSprintWithIssuesCommand sprintDto, CancellationToken ct)
         {
-            using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            await _transactionUnit.ExecuteWithTransactionAsync(async () =>
+            {
+                var sprint = await base.CreateAsync(sprintDto.SprintDto, ct);
 
-            var sprint = await base.CreateAsync(sprintDto.SprintDto, ct);
-
-            await _issueService.AssignSprintToIssuesAsync(sprintDto.Ids, sprint.Id, ct);
-
-            transactionScope.Complete();
+                await _issueService.AssignSprintToIssuesAsync(sprintDto.Ids, sprint.Id, ct);
+            });
         }
-
-
     }
 }

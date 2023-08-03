@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using FluentValidation;
 using Newtonsoft.Json;
 using FluentValidation.Results;
+using System.Transactions;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -23,6 +24,7 @@ namespace IssueTracker.Testing.ServicesTest
         private readonly Mock<IProjectsService> _projectServiceMock;
         private readonly Mock<IValidatorFactory> _validatorFactoryMock;
 
+        private readonly Mock<IUnitOfWork> _transactionUnitMock;
         public IssueServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -38,8 +40,9 @@ namespace IssueTracker.Testing.ServicesTest
             _userServiceMock = new Mock<IUsersService>();
             _projectServiceMock = new Mock<IProjectsService>();
             _validatorFactoryMock = new Mock<IValidatorFactory>();
+            _transactionUnitMock = new Mock<IUnitOfWork>();
 
-            _sut = new IssuesService(_dbContext, _mapper, _validatorFactoryMock.Object, _userServiceMock.Object, _projectServiceMock.Object);
+            _sut = new IssuesService(_dbContext, _mapper, _validatorFactoryMock.Object, _userServiceMock.Object, _projectServiceMock.Object, _transactionUnitMock.Object);
         }
 
         public void Dispose()
@@ -246,6 +249,9 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             var sprintId = 1;
 
+            _transactionUnitMock.Setup(t => t.ExecuteWithTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<TransactionScopeOption>(), It.IsAny<TransactionOptions>()))
+                .Returns((Func<Task> operation, TransactionScopeOption option, TransactionOptions transactionOptions) => operation())
+                .Verifiable();
             // Act & Assert
             await Assert.ThrowsAsync<InvalidInputException>(async () =>
                 await _sut.AssignSprintToIssuesAsync(new List<long> { 1 }, sprintId, It.IsAny<CancellationToken>()));
@@ -257,16 +263,17 @@ namespace IssueTracker.Testing.ServicesTest
             // Arrange
             var sprintId = 1;
 
-            // Create some issues in the database
             var issue1 = new Issue { Id = 1 };
             var issue2 = new Issue { Id = 2 };
             var issue3 = new Issue { Id = 3 };
             _dbContext.Issues.AddRange(issue1, issue2, issue3);
             await _dbContext.SaveChangesAsync();
 
-            // Convert ids to long (assuming they are actually long)
             var idsToAssign = new List<long> { 1, 2 };
 
+            _transactionUnitMock.Setup(t => t.ExecuteWithTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<TransactionScopeOption>(), It.IsAny<TransactionOptions>()))
+                .Returns((Func<Task> operation, TransactionScopeOption option, TransactionOptions transactionOptions) => operation())
+                .Verifiable();
             // Act
             await _sut.AssignSprintToIssuesAsync(idsToAssign, sprintId, It.IsAny<CancellationToken>());
 
