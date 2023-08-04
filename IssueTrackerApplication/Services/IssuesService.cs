@@ -12,7 +12,7 @@ namespace IssueTracker.Application.Services
     {
         private readonly IUsersService _userService;
         private readonly IProjectsService _projectService;
-
+        
         public IssuesService(IssueContext dbContext, IMapper mapper, IUsersService userService, IProjectsService projectService)
             : base(dbContext, mapper)
         {
@@ -37,7 +37,17 @@ namespace IssueTracker.Application.Services
                 throw new InvalidInputException("Assignee ID does not exits");
             }
 
-            return await base.CreateAsync(entity, ct);
+            using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            var issueSequence = await _projectService.GetIssueSequenceAsync(entity.ProjectId, ct);
+            var projectCode = await _projectService.GetProjectCodeAsync(entity.ProjectId, ct);
+
+            entity.ExternalId = $"{projectCode}-{issueSequence}";
+            var resultedIssue = await base.CreateAsync(entity, ct);
+
+            transactionScope.Complete();
+
+            return resultedIssue;
         }
 
         public async Task AssignSprintToIssuesAsync(List<long> ids, long sprintId, CancellationToken ct)

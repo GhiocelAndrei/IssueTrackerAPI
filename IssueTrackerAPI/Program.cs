@@ -5,6 +5,7 @@ using IssueTracker.Application;
 using IssueTrackerAPI;
 using IssueTracker.Application.Authorization;
 using FluentValidation;
+using IssueTracker.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IUsersService, UsersService>()
     .AddScoped<IProjectsService, ProjectsService>()
     .AddScoped<ISprintsService, SprintsService>()
+    .AddScoped<IProjectRepository, ProjectRepository>()
     .AddScoped<AuthorizationService>();
 
 builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));

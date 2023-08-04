@@ -5,6 +5,7 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
+using IssueTracker.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.Testing.ServicesTest
@@ -14,7 +15,7 @@ namespace IssueTracker.Testing.ServicesTest
         private IssueContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ProjectsService _sut;
-
+        private readonly Mock<IProjectRepository> projectRepositoryMock;
         public ProjectServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -27,7 +28,9 @@ namespace IssueTracker.Testing.ServicesTest
             });
             _mapper = mapperConfig.CreateMapper();
 
-            _sut = new ProjectsService(_dbContext, _mapper);
+            projectRepositoryMock = new Mock<IProjectRepository>();
+
+            _sut = new ProjectsService(_dbContext, _mapper, projectRepositoryMock.Object);
         }
 
         public void Dispose()
