@@ -4,12 +4,16 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace IssueTracker.Application.Services
 {
-    public class UsersService : BaseService<User, CreateUserCommand, UpdateUserCommand>, IUsersService
+    public class UsersService : BaseService<User>, IUsersService
     {
-        public UsersService(IssueContext dbContext, IMapper mapper) : base(dbContext, mapper)
+        public UsersService(IssueContext dbContext, 
+            IMapper mapper,
+            IValidatorFactory validatorFactory) 
+            : base(dbContext, mapper, validatorFactory)
         {
         }
 

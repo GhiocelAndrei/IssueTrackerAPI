@@ -5,22 +5,27 @@ using IssueTracker.DataAccess.DatabaseContext;
 using IssueTracker.Abstractions.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.Transactions;
+using FluentValidation;
 
 namespace IssueTracker.Application.Services
 {
-    public class IssuesService : BaseService<Issue, CreateIssueCommand, UpdateIssueCommand>, IIssuesService
+    public class IssuesService : BaseService<Issue>, IIssuesService
     {
         private readonly IUsersService _userService;
         private readonly IProjectsService _projectService;
-        
-        public IssuesService(IssueContext dbContext, IMapper mapper, IUsersService userService, IProjectsService projectService)
-            : base(dbContext, mapper)
+
+        public IssuesService(IssueContext dbContext,
+            IMapper mapper,
+            IValidatorFactory validatorFactory,
+            IUsersService userService,
+            IProjectsService projectService)
+            : base(dbContext, mapper, validatorFactory)
         {
             _userService = userService;
             _projectService = projectService;
         }
 
-        public override async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct)
+        public async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct) 
         {
             if (!await _projectService.ExistsAsync(entity.ProjectId, ct))
             {

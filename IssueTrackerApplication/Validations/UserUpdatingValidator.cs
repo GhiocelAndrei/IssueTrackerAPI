@@ -7,16 +7,15 @@ namespace IssueTracker.Application.Validations
     {
         public UserUpdatingValidator()
         {
-            RuleFor(dto => dto)
-                .Must(HaveAtLeastOnePropertyNotNull)
-                .WithMessage("At least one property must be updated");
-        }
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage("Name is required.");
 
-        private bool HaveAtLeastOnePropertyNotNull(UserUpdatingDto dto)
-        {
-            return !string.IsNullOrWhiteSpace(dto.Name) ||
-                   !string.IsNullOrWhiteSpace(dto.Email) ||
-                    !string.IsNullOrWhiteSpace(dto.Role);
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("A valid email is required.");
+
+            RuleFor(x => x.Role)
+                .NotEmpty().WithMessage("Role is required.");
         }
     }
 }

@@ -37,9 +37,9 @@ namespace IssueTracker.Abstractions.Mapping
         public long? ProjectId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public Priority? Priority { get; set; }
-        public long? ReporterId { get; set; }
-        public long? AssigneeId { get; set; }
+        public Priority Priority { get; set; }
+        public long ReporterId { get; set; }
+        public long AssigneeId { get; set; }
     }
 
     public class UpdateIssueCommand
@@ -47,8 +47,8 @@ namespace IssueTracker.Abstractions.Mapping
         public long? ProjectId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public Priority? Priority { get; set; }
-        public long? ReporterId { get; set; }
-        public long? AssigneeId { get; set; }
+        public Priority Priority { get; set; }
+        public long ReporterId { get; set; }
+        public long AssigneeId { get; set; }
     }
 }

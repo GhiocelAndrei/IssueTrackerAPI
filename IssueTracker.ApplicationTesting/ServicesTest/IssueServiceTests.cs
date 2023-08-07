@@ -7,6 +7,10 @@ using IssueTracker.Abstractions.Mapping;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch;
+using FluentValidation;
+using Newtonsoft.Json;
+using FluentValidation.Results;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -17,6 +21,8 @@ namespace IssueTracker.Testing.ServicesTest
         private readonly IssuesService _sut;
         private readonly Mock<IUsersService> _userServiceMock;
         private readonly Mock<IProjectsService> _projectServiceMock;
+        private readonly Mock<IValidatorFactory> _validatorFactoryMock;
+
         public IssueServiceTests()
         {
             var optionsBuilder = new DbContextOptionsBuilder<IssueContext>()
@@ -31,8 +37,9 @@ namespace IssueTracker.Testing.ServicesTest
 
             _userServiceMock = new Mock<IUsersService>();
             _projectServiceMock = new Mock<IProjectsService>();
+            _validatorFactoryMock = new Mock<IValidatorFactory>();
 
-            _sut = new IssuesService(_dbContext, _mapper, _userServiceMock.Object, _projectServiceMock.Object);
+            _sut = new IssuesService(_dbContext, _mapper, _validatorFactoryMock.Object, _userServiceMock.Object, _projectServiceMock.Object);
         }
 
         public void Dispose()
@@ -273,5 +280,107 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Null(unchangedIssue3.SprintId);
         }
 
+        [Fact]
+        public async Task PatchAsync_ShouldThrowNotFoundException_WhenIssueNotFound()
+        {
+            // Arrange
+            var id = 1;
+            var jsonPatchDocument = new JsonPatchDocument<IssueUpdatingDto>();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(async () => await _sut.PatchAsync(id, jsonPatchDocument, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowInvalidInputException_WhenInvalidPathInPatchDocument()
+        {
+            // Arrange
+            var issueId = 1;
+            var issue = new Issue { Id = issueId };
+
+            _dbContext.Issues.Add(issue);
+            await _dbContext.SaveChangesAsync();
+
+            string jsonPatch = @"
+            [
+                {
+                    ""op"": ""replace"",
+                    ""path"": ""/CreatedAt"",
+                    ""value"": ""2023-07-31T15:00:03.42""
+                }
+            ]";
+
+            var patchDoc = JsonConvert.DeserializeObject<JsonPatchDocument<IssueUpdatingDto>>(jsonPatch);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(issueId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldThrowsInvalidInputException_WhenInvalidValueInPatchDocument()
+        {
+            // Arrange
+            var issueId = 1;
+            var issue = new Issue { Id = issueId };
+
+            _dbContext.Issues.Add(issue);
+            await _dbContext.SaveChangesAsync();
+
+            var patchDoc = new JsonPatchDocument<IssueUpdatingDto>();
+            patchDoc.Replace(i => i.Title, null);
+
+            var mockValidator = new Mock<IValidator<IssueUpdatingDto>>();
+            var validationResult = new ValidationResult(new List<ValidationFailure> { new ValidationFailure("Title", "Title cannot be null") });
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<IssueUpdatingDto>(), default)).ReturnsAsync(validationResult);
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<IssueUpdatingDto>()).Returns(mockValidator.Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.PatchAsync(issueId, patchDoc, default));
+        }
+
+        [Fact]
+        public async Task PatchAsync_ShouldApplyPatchToIssueAndSaveChanges()
+        {
+            // Arrange
+            var id = 1L;
+            var issue = new Issue
+            {
+                Id = id,
+                Title = "Old title",
+                Description = "Old description",
+                Priority = Priority.High,
+                ReporterId = 1,
+                AssigneeId = 1,
+                ProjectId = 1
+            };
+
+            _dbContext.Issues.Add(issue);
+            await _dbContext.SaveChangesAsync();
+
+            var patchedTitle = "Patched title";
+            var patchedDescription = "Patched description";
+
+            var jsonPatchDocument = new JsonPatchDocument<IssueUpdatingDto>();
+            jsonPatchDocument.Replace(x => x.Title, patchedTitle);
+            jsonPatchDocument.Replace(x => x.Description, patchedDescription);
+
+            var mockValidator = new Mock<IValidator<IssueUpdatingDto>>();
+            mockValidator.Setup(v => v.ValidateAsync(It.IsAny<IssueUpdatingDto>(), default)).ReturnsAsync(new ValidationResult());
+
+            _validatorFactoryMock.Setup(f => f.GetValidator<IssueUpdatingDto>()).Returns(mockValidator.Object);
+            // Act
+            await _sut.PatchAsync(id, jsonPatchDocument, CancellationToken.None);
+            var updatedIssue = await _dbContext.Issues.FindAsync(id);
+
+            // Assert
+            Assert.Equal(issue.Id, updatedIssue.Id);
+            Assert.Equal(patchedTitle, updatedIssue.Title);
+            Assert.Equal(patchedDescription, updatedIssue.Description);
+            Assert.Equal(issue.Priority, updatedIssue.Priority);
+            Assert.Equal(issue.ReporterId, updatedIssue.ReporterId);
+            Assert.Equal(issue.AssigneeId, updatedIssue.AssigneeId);
+            Assert.Equal(issue.ProjectId, updatedIssue.ProjectId);
+        }
     }
 }

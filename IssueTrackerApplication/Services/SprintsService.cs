@@ -4,13 +4,18 @@ using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Exceptions;
 using IssueTracker.DataAccess.DatabaseContext;
 using System.Transactions;
+using FluentValidation;
 
 namespace IssueTracker.Application.Services
 {
-    public class SprintsService : BaseService<Sprint, CreateSprintCommand, UpdateSprintCommand>, ISprintsService
+    public class SprintsService : BaseService<Sprint>, ISprintsService
     {
         private readonly IIssuesService _issueService;
-        public SprintsService(IssueContext dbContext, IMapper mapper, IIssuesService issueService) : base(dbContext, mapper)
+        public SprintsService(IssueContext dbContext, 
+            IMapper mapper, 
+            IValidatorFactory allValidators,
+            IIssuesService issueService) 
+            : base(dbContext, mapper, allValidators)
         {
             _issueService = issueService;
         }
