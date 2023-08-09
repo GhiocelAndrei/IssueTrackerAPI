@@ -22,7 +22,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("All")]
-        [OAuth(Scopes.IssuesRead)]
+        [OAuth(Permissions.IssuesRead)]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssues(CancellationToken ct)
         {
             var issues = await _issueService.GetAllAsync(ct);
@@ -31,7 +31,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [OAuth(Scopes.IssuesRead)]
+        [OAuth(Permissions.IssuesRead)]
         public async Task<ActionResult<IssueDto>> GetIssue(long id, CancellationToken ct)
         {
             var issue = await _issueService.GetAsync(id, ct);
@@ -40,7 +40,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("Sprint/{id}")]
-        [OAuth(Scopes.IssuesRead)]
+        [OAuth(Permissions.IssuesRead)]
         public async Task<ActionResult<IEnumerable<IssueDto>>> GetIssuesBySprintId(long id, CancellationToken ct)
         {
             var issues = await _issueService.GetIssuesBySprintIdAsync(id, ct);
@@ -49,7 +49,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        [OAuth(Scopes.IssuesWrite)]
+        [OAuth(Permissions.IssuesWrite)]
         public async Task<IssueDto> PatchIssue(long id, JsonPatchDocument<IssueUpdatingDto> issuePatch, CancellationToken ct)
         {
             var issue = await _issueService.PatchAsync(id, issuePatch, ct);
@@ -58,7 +58,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPut("AssignSprint")]
-        [OAuth(Scopes.IssuesWrite)]
+        [OAuth(Permissions.IssuesWrite)]
         public async Task<IActionResult> AssignSprintToIssues(List<long> ids, long sprintId, CancellationToken ct)
         {
             await _issueService.AssignSprintToIssuesAsync(ids, sprintId, ct);
@@ -67,7 +67,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPost]
-        [OAuth(Scopes.IssuesWrite)]
+        [OAuth(Permissions.IssuesWrite)]
         public async Task<ActionResult<Issue>> PostIssue(IssueCreatingDto issueDto, CancellationToken ct)
         {
             var issueCommand = _mapper.Map<CreateIssueCommand>(issueDto);
@@ -78,7 +78,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [OAuth(Scopes.IssuesWrite)]
+        [OAuth(Permissions.IssuesWrite)]
         public async Task<IActionResult> DeleteIssue(long id, CancellationToken ct)
         {
             await _issueService.DeleteAsync(id, ct);

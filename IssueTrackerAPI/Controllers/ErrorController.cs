@@ -23,6 +23,9 @@ namespace IssueTrackerAPI.Controllers
                 case MissingValidatorException missingValidatorException:
                     return StatusCode(500, missingValidatorException.Message);
 
+                case AuthenticationException authenticationException:
+                    return BadRequest(authenticationException.Message);
+
                 default:
                     return Problem();
             }            
@@ -48,6 +51,9 @@ namespace IssueTrackerAPI.Controllers
 
                 case MissingValidatorException missingValidatorException:
                     return StatusCode(500, FormatedMessage(missingValidatorException.Message, missingValidatorException.StackTrace));
+
+                case AuthenticationException authenticationException:
+                    return BadRequest(FormatedMessage(authenticationException.Message, authenticationException.StackTrace));
 
                 default:
                     return Problem(

@@ -4,11 +4,11 @@ namespace IssueTracker.Application.Authorization
 {
     public class OAuthAttribute : TypeFilterAttribute
     {
-        public string[] Scopes { get; private set; }
+        public string[] Permissions { get; private set; }
 
-        public OAuthAttribute(params string[] scopes) : base(typeof(OAuthFilter))
+        public OAuthAttribute(params string[] permissions) : base(typeof(OAuthFilter))
         {
-            Scopes = scopes;
+            Permissions = permissions;
             Arguments = new object[] { this };
         }
     }

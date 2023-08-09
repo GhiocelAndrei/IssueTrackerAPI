@@ -3,29 +3,29 @@ using FluentValidation.AspNetCore;
 using IssueTracker.Application.Services;
 using IssueTracker.Application;
 using IssueTrackerAPI;
-using IssueTracker.Application.Authorization;
 using FluentValidation;
 using IssueTracker.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Configuration.ApplicationAddConfiguration(builder.Environment);
+
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddCors(options => options.AddPolicy("AllowAllOrigins",
+                            builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()))
+                .AddControllers()
                 .AddNewtonsoftJson();
                 
 builder.Services.AddFluentValidationAutoValidation()
                 .AddFluentValidationClientsideAdapters()
                 .AddValidatorsFromAssembly(typeof(IssueTracker.Application.Validations.IssueCreatingValidator).Assembly);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"));
+builder.Services.ApplicationAddDataAccess(builder.Configuration.GetConnectionString("SqlServer"))
+                .ApplicationAddExternalAuthentication(builder.Configuration);
 
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen();
-
-// Adaug Serviciile pentru Autorizare
-builder.Services.ApplicationAddSecurity(builder.Configuration.GetSection("AppSettings:Secret").Value);
+builder.Services.AddEndpointsApiExplorer()
+                .AddSwaggerGen();
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
@@ -36,8 +36,10 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<ISprintsService, SprintsService>()
     .AddScoped<IProjectRepository, ProjectRepository>()
     .AddScoped<IUnitOfWork, UnitOfWork>()
-    .AddScoped<AuthorizationService>()
+    .AddScoped<AccountService>()
     .AddScoped<SearchLimitingService>();
+
+builder.Services.AddHttpClient();
 
 builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));
 
@@ -59,6 +61,8 @@ else
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAllOrigins");
 
 app.UseAuthentication();
 

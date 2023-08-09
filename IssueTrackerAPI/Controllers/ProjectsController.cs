@@ -23,7 +23,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("All")]
-        [OAuth(Scopes.ProjectsRead)]
+        [OAuth(Permissions.ProjectsRead)]
         public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken ct)
         {
             var projects = await _projectService.GetAllAsync(ct);
@@ -32,7 +32,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [OAuth(Scopes.ProjectsRead)]
+        [OAuth(Permissions.ProjectsRead)]
         public async Task<ActionResult<ProjectDto>> GetProject(long id, CancellationToken ct)
         {
             var project = await _projectService.GetAsync(id, ct);
@@ -41,7 +41,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        [OAuth(Scopes.ProjectsWrite)]
+        [OAuth(Permissions.ProjectsWrite)]
         public async Task<ProjectDto> PatchProject(long id, JsonPatchDocument<ProjectUpdatingDto> projectPatch, CancellationToken ct)
         {
             var project = await _projectService.PatchAsync(id, projectPatch, ct);
@@ -50,7 +50,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPost]
-        [OAuth(Scopes.ProjectsWrite)]
+        [OAuth(Permissions.ProjectsWrite)]
         public async Task<ActionResult<Project>> PostProject(ProjectCreatingDto projectDto, CancellationToken ct)
         {
             var projectCommand = _mapper.Map<CreateProjectCommand>(projectDto);
@@ -61,7 +61,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [OAuth(Scopes.ProjectsWrite)]
+        [OAuth(Permissions.ProjectsWrite)]
         public async Task<IActionResult> DeleteProject(long id, CancellationToken ct)
         {
             await _projectService.DeleteAsync(id, ct);

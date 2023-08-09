@@ -22,7 +22,7 @@ namespace IssueTrackerAPI.Controllers
 
 
         [HttpGet]
-        [OAuth(Scopes.IssuesRead, Scopes.ProjectsRead)]
+        [OAuth(Permissions.IssuesRead, Permissions.ProjectsRead)]
         public async Task<IActionResult> SearchForKeyword(string keyword, CancellationToken ct)
         {
             if (keyword.Length < 3)
