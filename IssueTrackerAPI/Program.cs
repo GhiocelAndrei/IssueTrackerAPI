@@ -35,6 +35,7 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IProjectsService, ProjectsService>()
     .AddScoped<ISprintsService, SprintsService>()
     .AddScoped<IProjectRepository, ProjectRepository>()
+    .AddScoped<IUnitOfWork, UnitOfWork>()
     .AddScoped<AuthorizationService>();
 
 builder.Services.SetUpFluentMigration(builder.Configuration.GetConnectionString("SqlServer"));

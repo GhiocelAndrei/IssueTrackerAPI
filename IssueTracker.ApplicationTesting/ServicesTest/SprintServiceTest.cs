@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using FluentValidation;
 using Newtonsoft.Json;
 using FluentValidation.Results;
+using System.Transactions;
 
 namespace IssueTracker.ApplicationTesting.ServicesTest
 {
@@ -20,6 +21,7 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
         private readonly SprintsService _sut;
         private readonly Mock<IIssuesService> _issuesServiceMock;
         private readonly Mock<IValidatorFactory> _validatorFactoryMock;
+        private readonly Mock<IUnitOfWork> _transactionUnitMock;
 
         public SprintServiceTests()
         {
@@ -35,8 +37,9 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
 
             _issuesServiceMock = new Mock<IIssuesService>();
             _validatorFactoryMock = new Mock<IValidatorFactory>();
+            _transactionUnitMock = new Mock<IUnitOfWork>();
 
-            _sut = new SprintsService(_dbContext, _mapper, _validatorFactoryMock.Object, _issuesServiceMock.Object);
+            _sut = new SprintsService(_dbContext, _mapper, _validatorFactoryMock.Object, _issuesServiceMock.Object, _transactionUnitMock.Object);
         }
 
         public void Dispose()
@@ -167,6 +170,9 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
             _dbContext.Sprints.Add(deletedSprint);
             await _dbContext.SaveChangesAsync();
 
+            _transactionUnitMock.Setup(t => t.ExecuteWithTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<TransactionScopeOption>(), It.IsAny<TransactionOptions>()))
+                .Returns((Func<Task> operation, TransactionScopeOption option, TransactionOptions transactionOptions) => operation())
+                .Verifiable();
             // Act
             await _sut.DeleteAsync(sprintId, It.IsAny<CancellationToken>());
 
