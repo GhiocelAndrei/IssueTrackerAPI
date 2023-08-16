@@ -389,5 +389,48 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Equal(issue.AssigneeId, updatedIssue.AssigneeId);
             Assert.Equal(issue.ProjectId, updatedIssue.ProjectId);
         }
+
+        [Fact]
+        public async Task SearchAsync_ShouldThrowInvalidInputException_WhenPropertyDoesNotExist()
+        {
+            // Arrange, Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.SearchAsync("NonExistentProperty", "SomeValue", 50, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnEmptyList_WhenNoMatches()
+        {
+            // Arrange
+            var issue = new Issue { Title = "TestIssue" };
+            _dbContext.Issues.Add(issue);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var results = await _sut.SearchAsync("Title", "NonMatchingValue", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnIssuesList_WhenMatching()
+        {
+            // Arrange
+            var issue1 = new Issue { Title = "SameTitle" };
+            var issue2 = new Issue { Title = "SameTitle" };
+            var issue3 = new Issue { Title = "DifferentTitle" };
+            _dbContext.Issues.Add(issue1);
+            _dbContext.Issues.Add(issue2);
+            _dbContext.Issues.Add(issue3);
+            await _dbContext.SaveChangesAsync();
+
+            var issuesList = new List<Issue> { issue1, issue2 };
+
+            // Act
+            var results = await _sut.SearchAsync("Title", "SameTitle", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(issuesList, results);
+        }
     }
 }

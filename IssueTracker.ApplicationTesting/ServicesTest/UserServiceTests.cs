@@ -293,5 +293,48 @@ namespace IssueTracker.Testing.ServicesTest
             Assert.Equal(patchedRole, updatedUser.Role);
             Assert.Equal(user.Email, updatedUser.Email);
         }
+
+        [Fact]
+        public async Task SearchAsync_ShouldThrowInvalidInputException_WhenPropertyDoesNotExist()
+        {
+            // Arrange, Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.SearchAsync("NonExistentProperty", "SomeValue", 50, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnEmptyList_WhenNoMatches()
+        {
+            // Arrange
+            var user = new User { Name = "TestUser" };
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "NonMatchingValue", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnUsersList_WhenMatching()
+        {
+            // Arrange
+            var user1 = new User { Name = "SameName" };
+            var user2 = new User { Name = "SameName" };
+            var user3 = new User { Name = "DifferentName" };
+            _dbContext.Users.Add(user1);
+            _dbContext.Users.Add(user2);
+            _dbContext.Users.Add(user3);
+            await _dbContext.SaveChangesAsync();
+
+            var usersList = new List<User> { user1, user2 };
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "SameName", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(usersList, results);
+        }
     }
 }

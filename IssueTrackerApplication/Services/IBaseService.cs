@@ -14,5 +14,7 @@ namespace IssueTracker.Application.Services
         Task<T> CreateAsync<TCreateCommand>(TCreateCommand entity, CancellationToken ct)
             where TCreateCommand : class;
         Task DeleteAsync(long id, CancellationToken ct);
+        Task<List<T>> SearchAsync(string property, string value, int queryLimit, CancellationToken ct);
+        Task<List<T>> SearchAsync(List<string> properties, string value, int queryLimit, CancellationToken ct);
     }
 }
