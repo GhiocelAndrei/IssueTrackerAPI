@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202307281124)]
-    public class AddNewColumnsToIssuesAndSprints : Migration
+    public class Migration_202307281124_AddNewColumnsToIssuesAndSprints : Migration
     {
         public override void Up()
         {

@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202305071638)]
-    public class CreateTables : Migration
+    public class Migration_202305071638_CreateTables : Migration
     {
         public override void Up()
         {

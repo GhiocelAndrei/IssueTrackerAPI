@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202308011742)]
-    public class AddColumnsForExternalIdAndProjectCode : Migration
+    public class Migration_202308011742_AddColumnsForExternalIdAndProjectCode : Migration
     {
         public override void Up()
         {

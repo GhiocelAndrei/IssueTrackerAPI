@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202307121418)]
-    public class AddRoleColumnToUsersTable : Migration
+    public class Migration_202307121418_AddRoleColumnToUsersTable : Migration
     {
         public override void Up()
         {

@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202307111812)]
-    public class ChangeUpdatedAtToNullable : Migration
+    public class Migration_202307111812_ChangeUpdatedAtToNullable : Migration
     {
         public override void Up()
         {

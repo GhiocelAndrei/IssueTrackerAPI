@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202308011224)]
-    public class AddDeletedColumnsToSprintsAndUsers : Migration
+    public class Migration_202308011224_AddDeletedColumnsToSprintsAndUsers : Migration
     {
         public override void Up()
         {

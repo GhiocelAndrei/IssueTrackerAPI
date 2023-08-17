@@ -11,7 +11,7 @@ namespace IssueTracker.Application.Services
                 .ConfigureRunner(config => config
                     .AddSqlServer()
                     .WithGlobalConnectionString(connectionString)
-                    .ScanIn(typeof(IssueTracker.DataAccess.Migrations.AddRoleColumnToUsersTable).Assembly).For.All())
+                    .ScanIn(typeof(IssueTracker.DataAccess.Migrations.Migration_202307121418_AddRoleColumnToUsersTable).Assembly).For.All())
                 .AddLogging(config => config.AddFluentMigratorConsole());
 
             return services;
