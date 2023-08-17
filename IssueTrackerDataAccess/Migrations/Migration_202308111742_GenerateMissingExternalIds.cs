@@ -15,6 +15,8 @@ namespace IssueTracker.DataAccess.Migrations
 
             DECLARE @IssueId BIGINT, @ProjectId BIGINT, @Seq BIGINT, @ProjectCode NVARCHAR(25);
             
+            DECLARE @SeqTable TABLE (Sequence BIGINT);
+
             DECLARE IssueCursor CURSOR FOR
             SELECT i.Id, i.ProjectId, p.Code
             FROM Issues i
@@ -26,16 +28,20 @@ namespace IssueTracker.DataAccess.Migrations
 
             WHILE @@FETCH_STATUS = 0
             BEGIN
+                DELETE FROM @SeqTable;
+
                 UPDATE Projects WITH(HOLDLOCK, ROWLOCK)
                 SET IssueSequence = IssueSequence + 1
-                OUTPUT inserted.IssueSequence INTO @Seq
+                OUTPUT inserted.IssueSequence INTO @SeqTable
                 WHERE Id = @ProjectId;
-                
+    
+                SELECT @Seq = Sequence FROM @SeqTable;
+
                 UPDATE Issues SET ExternalId = @ProjectCode + '-' + CAST(@Seq AS NVARCHAR(20)) WHERE Id = @IssueId;
 
                 FETCH NEXT FROM IssueCursor INTO @IssueId, @ProjectId, @ProjectCode;
             END;
-
+            
             CLOSE IssueCursor;
             DEALLOCATE IssueCursor;
             ");
