@@ -6,7 +6,6 @@ using IssueTracker.Application.Services;
 using IssueTracker.Abstractions.Definitions;
 using IssueTracker.Application.Authorization;
 using AutoMapper;
-using Microsoft.Extensions.Options;
 
 namespace IssueTrackerAPI.Controllers
 {
@@ -16,20 +15,15 @@ namespace IssueTrackerAPI.Controllers
     {
         private readonly IUsersService _userService;
         private readonly IMapper _mapper;
-        private readonly AppSettings _appSettings;
-        private readonly AuthorizationService _authorizationService;
 
-        public UsersController(IUsersService userService, IMapper mapper, 
-            IOptions<AppSettings> appSettings, AuthorizationService authorizationService)
+        public UsersController(IUsersService userService, IMapper mapper)
         {
             _userService = userService;
             _mapper = mapper;
-            _appSettings = appSettings.Value;
-            _authorizationService = authorizationService;
         }
         
         [HttpGet("All")]
-        [OAuth(Scopes.UsersRead)]
+        [OAuth(Permissions.UsersRead)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken ct)
         {
             var users = await _userService.GetAllAsync(ct);
@@ -38,7 +32,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [OAuth(Scopes.UsersRead)]
+        [OAuth(Permissions.UsersRead)]
         public async Task<ActionResult<UserDto>> GetUser(long id, CancellationToken ct)
         {
             var user = await _userService.GetAsync(id, ct);
@@ -47,7 +41,7 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        [OAuth(Scopes.UsersWrite)]
+        [OAuth(Permissions.UsersWrite)]
         public async Task<UserDto> PatchUser(long id, JsonPatchDocument<UserUpdatingDto> userPatch, CancellationToken ct)
         {
             var user = await _userService.PatchAsync(id, userPatch, ct);
@@ -65,20 +59,8 @@ namespace IssueTrackerAPI.Controllers
             return CreatedAtAction("GetUser", new { id = createdUser.Id }, createdUser);
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<User>> LoginUser(UserLoginDto userDto, CancellationToken ct)
-        {
-            var userCommand = _mapper.Map<LoginUserCommand>(userDto);
-
-            var role = await _userService.LoginUserAsync(userCommand, ct);
-
-            string token = _authorizationService.CreateToken(role, _appSettings.Secret);
-
-            return Ok(token);
-        }
-
         [HttpDelete("{id}")]
-        [OAuth(Scopes.UsersWrite)]
+        [OAuth(Permissions.UsersWrite)]
         public async Task<IActionResult> DeleteUser(long id, CancellationToken ct)
         {
             await _userService.DeleteAsync(id, ct);

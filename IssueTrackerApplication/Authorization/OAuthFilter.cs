@@ -5,11 +5,11 @@ namespace IssueTracker.Application.Authorization
 {
     public class OAuthFilter : IAuthorizationFilter
     {
-        private readonly string[] _scopes;
+        private readonly string[] _permissions;
 
         public OAuthFilter(OAuthAttribute authAttribute)
         {
-            _scopes = authAttribute.Scopes;
+            _permissions = authAttribute.Permissions;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -23,9 +23,9 @@ namespace IssueTracker.Application.Authorization
             }
 
 
-            foreach (var scope in _scopes)
+            foreach (var permission in _permissions)
             {
-                if (!user.HasClaim(c => c.Type == "scope" && c.Value == scope))
+                if (!user.HasClaim(c => c.Type == "permissions" && c.Value == permission))
                 {
                     context.Result = new ForbidResult();
                     return;

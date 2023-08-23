@@ -1,6 +1,6 @@
 ﻿namespace IssueTracker.Abstractions.Definitions
 {
-    public static class Scopes
+    public static class Permissions
     {
         public const string IssuesRead = "IssuesRead";
         public const string IssuesWrite = "IssuesWrite";
