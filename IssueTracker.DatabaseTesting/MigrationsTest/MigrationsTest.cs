@@ -2,6 +2,7 @@
 using FluentMigrator.Runner;
 using IssueTracker.Application.Services;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace IssueTracker.DatabaseTesting.MigrationsTest
 {
@@ -9,11 +10,16 @@ namespace IssueTracker.DatabaseTesting.MigrationsTest
     {
         private string _connectionString;
         private string _masterConnectionString;
-
+        
         public MigrationTests()
         {
-            _connectionString = "Server=localhost,1433;Database=TestIssueTracker;User Id=sa;Password=1qazXSW@;TrustServerCertificate=true";
-            _masterConnectionString = "Server=localhost,1433;Database=master;User Id=sa;Password=1qazXSW@;TrustServerCertificate=true";
+            var config = new ConfigurationBuilder()
+                            .SetBasePath(Directory.GetCurrentDirectory())
+                            .AddJsonFile("appsettings.ci.json")
+                            .Build();
+            
+            _connectionString = config.GetConnectionString("ConnString");
+            _masterConnectionString = config.GetConnectionString("MasterString");
 
             EnsureDatabaseCreated();
         }
@@ -43,6 +49,10 @@ namespace IssueTracker.DatabaseTesting.MigrationsTest
 
             using var scope = serviceProvider.CreateScope();
             var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+            runner.MigrateUp();
+
+            runner.MigrateDown(0);
+
             runner.MigrateUp();
         }
     }
