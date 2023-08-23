@@ -88,7 +88,7 @@ namespace IssueTracker.Testing.ServicesTest
         }
 
         [Fact]
-        public async Task Update_ShouldThrowNotFoundException_WhenIssueNotFound()
+        public async Task Update_ShouldThrowNotFoundException_WhenProjectNotFound()
         {
             // Arrange
             var id = 1;
@@ -134,8 +134,8 @@ namespace IssueTracker.Testing.ServicesTest
                 Name = "Test Project"
             };
 
-            var expectedIssue = _mapper.Map<Project>(createProjectCommand);
-            expectedIssue.Id = 1;
+            var expectedProject = _mapper.Map<Project>(createProjectCommand);
+            expectedProject.Id = 1;
 
             // Act
             var result = await _sut.CreateAsync(createProjectCommand, It.IsAny<CancellationToken>());
@@ -249,6 +249,49 @@ namespace IssueTracker.Testing.ServicesTest
             // Assert
             Assert.Equal(project.Id, updatedProject.Id);
             Assert.Equal(patchedName, updatedProject.Name);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldThrowInvalidInputException_WhenPropertyDoesNotExist()
+        {
+            // Arrange, Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.SearchAsync("NonExistentProperty", "SomeValue", 50, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnEmptyList_WhenNoMatches()
+        {
+            // Arrange
+            var project = new Project { Name = "TestProject" };
+            _dbContext.Projects.Add(project);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "NonMatchingValue", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnProjectsList_WhenMatching()
+        {
+            // Arrange
+            var project1 = new Project { Name = "SameName" };
+            var project2 = new Project { Name = "SameName" };
+            var project3 = new Project { Name = "DifferentName" };
+            _dbContext.Projects.Add(project1);
+            _dbContext.Projects.Add(project2);
+            _dbContext.Projects.Add(project3);
+            await _dbContext.SaveChangesAsync();
+
+            var projectsList = new List<Project> { project1, project2 };
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "SameName", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(projectsList, results);
         }
     }
 }

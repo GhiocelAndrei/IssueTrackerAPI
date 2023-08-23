@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.JsonPatch;
 using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using System.Text;
+using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 
 namespace IssueTracker.Application.Services
 {
@@ -157,6 +159,44 @@ namespace IssueTracker.Application.Services
             }
 
             await DbContext.SaveChangesAsync(ct);
+        }
+
+        public Task<List<T>> SearchAsync(string property, string value, int queryLimit, CancellationToken ct)
+            => SearchAsync(new List<string> { property }, value, queryLimit, ct);
+        
+
+        public Task<List<T>> SearchAsync(List<string> properties, string value, int queryLimit, CancellationToken ct)
+        {
+            var queryBuilder = new StringBuilder();
+            var parameters = new List<object>();
+
+            for (int i = 0; i < properties.Count; i++)
+            {
+                var propertyInfo = typeof(T).GetProperty(properties[i]);
+
+                if (propertyInfo == null)
+                {
+                    throw new InvalidInputException($"The property '{properties[i]}' does not exist on type '{typeof(T).Name}'.");
+                }
+
+                if (propertyInfo.PropertyType != typeof(string))
+                {
+                    throw new InvalidInputException($"The property '{properties[i]}' on type '{typeof(T).Name}' is not of type 'string'.");
+                }
+
+                if (i > 0)
+                {
+                    queryBuilder.Append(" or ");
+                }
+                queryBuilder.Append($"{properties[i]}.Contains(@0)");
+            }
+
+            parameters.Add(value);
+
+            string query = queryBuilder.ToString();
+            var entities = DbContext.Set<T>().Where(query, parameters.ToArray()).Take(queryLimit).ToListAsync(ct);
+
+            return entities;
         }
     }
 }

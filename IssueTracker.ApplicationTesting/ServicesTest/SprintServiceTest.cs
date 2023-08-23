@@ -313,5 +313,48 @@ namespace IssueTracker.ApplicationTesting.ServicesTest
             Assert.Equal(sprint.StartDate, updatedSprint.StartDate);
             Assert.Equal(sprint.EndDate, updatedSprint.EndDate);
         }
+
+        [Fact]
+        public async Task SearchAsync_ShouldThrowInvalidInputException_WhenPropertyDoesNotExist()
+        {
+            // Arrange, Act & Assert
+            await Assert.ThrowsAsync<InvalidInputException>(() => _sut.SearchAsync("NonExistentProperty", "SomeValue", 50, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnEmptyList_WhenNoMatches()
+        {
+            // Arrange
+            var sprint = new Sprint { Name = "TestSprint" };
+            _dbContext.Sprints.Add(sprint);
+            await _dbContext.SaveChangesAsync();
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "NonMatchingValue", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task SearchAsync_ShouldReturnSprintsList_WhenMatching()
+        {
+            // Arrange
+            var sprint1 = new Sprint { Name = "SameName" };
+            var sprint2 = new Sprint { Name = "SameName" };
+            var sprint3 = new Sprint { Name = "DifferentName" };
+            _dbContext.Sprints.Add(sprint1);
+            _dbContext.Sprints.Add(sprint2);
+            _dbContext.Sprints.Add(sprint3);
+            await _dbContext.SaveChangesAsync();
+
+            var sprintsList = new List<Sprint> { sprint1, sprint2 };
+
+            // Act
+            var results = await _sut.SearchAsync("Name", "SameName", 50, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(sprintsList, results);
+        }
     }
 }
