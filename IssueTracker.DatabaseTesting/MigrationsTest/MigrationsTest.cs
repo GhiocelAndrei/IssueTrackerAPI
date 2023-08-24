@@ -12,18 +12,14 @@ namespace IssueTracker.DatabaseTesting.MigrationsTest
         
         public MigrationTests()
         {
-            var environment = Environment.GetEnvironmentVariable("IssueTrackerTestEnvironment") ?? "Development";
-
-            var configFilePath = environment == "Development"
-                                    ? "appsettings.Development.json"
-                                    : "appsettings.ci.json";
+            var environment = Environment.GetEnvironmentVariable("IssueTrackerTestEnvironment") ?? "ci";
 
             var config = new ConfigurationBuilder()
                             .SetBasePath(Directory.GetCurrentDirectory())
-                            .AddJsonFile(configFilePath)
+                            .AddJsonFile($"appsettings.{environment}.json")
                             .Build();
-            
-            _connectionString = config.GetConnectionString("ConnString");
+
+            _connectionString = config.GetConnectionString("SqlServer");
 
             EnsureDatabaseCreated();
         }
