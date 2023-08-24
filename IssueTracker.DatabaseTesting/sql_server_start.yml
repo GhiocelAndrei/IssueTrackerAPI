@@ -9,3 +9,5 @@ services:
     environment:
         SA_PASSWORD: "1qazXSW@"
         ACCEPT_EULA: "Y"
+        MSSQL_COLLATION: "SQL_Latin1_General_CP1_CS_AS"
+        MSSQL_PID: "Developer"

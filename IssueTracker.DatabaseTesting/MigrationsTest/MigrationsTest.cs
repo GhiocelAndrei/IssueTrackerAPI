@@ -1,42 +1,41 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using FluentMigrator.Runner;
 using IssueTracker.Application.Services;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.DatabaseTesting.MigrationsTest
 {
     public class MigrationTests
     {
-        private string _connectionString;
-        private string _masterConnectionString;
+        private readonly string _connectionString;
         
         public MigrationTests()
         {
+            var environment = Environment.GetEnvironmentVariable("IssueTrackerTestEnvironment") ?? "Development";
+
+            var configFilePath = environment == "Development"
+                                    ? "appsettings.Development.json"
+                                    : "appsettings.ci.json";
+
             var config = new ConfigurationBuilder()
                             .SetBasePath(Directory.GetCurrentDirectory())
-                            .AddJsonFile("appsettings.ci.json")
+                            .AddJsonFile(configFilePath)
                             .Build();
             
             _connectionString = config.GetConnectionString("ConnString");
-            _masterConnectionString = config.GetConnectionString("MasterString");
 
             EnsureDatabaseCreated();
         }
 
         private void EnsureDatabaseCreated()
         {
-            using (var connection = new SqlConnection(_masterConnectionString))
-            {
-                connection.Open();
+            var options = new DbContextOptionsBuilder<DbContext>()
+                              .UseSqlServer(_connectionString)
+                              .Options;
 
-                using (var command = new SqlCommand($"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'TestIssueTracker') CREATE DATABASE TestIssueTracker;", connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-
-                connection.Close();
-            }
+            using var context = new DbContext(options);
+            context.Database.EnsureCreated();
         }
 
         [Fact]

@@ -24,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="FluentMigrator" Version="3.3.2" />
     <PackageReference Include="FluentMigrator.Runner" Version="3.3.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
@@ -41,6 +42,12 @@
     <ProjectReference Include="..\IssueTracker.Abstractions\IssueTracker.Abstractions.csproj" />
     <ProjectReference Include="..\IssueTrackerApplication\IssueTracker.Application.csproj" />
     <ProjectReference Include="..\IssueTrackerDataAccess\IssueTracker.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
