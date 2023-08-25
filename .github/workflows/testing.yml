@@ -9,6 +9,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name : Start dependencies (docker-compose)
+      run: docker-compose -f IssueTracker.DatabaseTesting/sql_server_start.yml up -d
+        
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:

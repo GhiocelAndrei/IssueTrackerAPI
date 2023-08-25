@@ -3,7 +3,7 @@
 namespace IssueTracker.DataAccess.Migrations
 {
     [Migration(202308111742)]
-    public class Migration_202308111742_GenerateMissingExternalIds : ForwardOnlyMigration
+    public class Migration_202308111742_GenerateMissingExternalIds : Migration
     {
         public override void Up()
         {
@@ -45,6 +45,11 @@ namespace IssueTracker.DataAccess.Migrations
             CLOSE IssueCursor;
             DEALLOCATE IssueCursor;
             ");
+        }
+
+        public override void Down()
+        {
+           
         }
     }
 }
