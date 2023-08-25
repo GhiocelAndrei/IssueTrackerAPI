@@ -6,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IssueTracker.DatabaseTesting.MigrationsTest
 {
-    public class MigrationTests
+    public class MigrationTests : IDisposable
     {
         private readonly string _connectionString;
-        
+        private readonly DbContextOptions _dbContextOptions;
+
         public MigrationTests()
         {
             var environment = Environment.GetEnvironmentVariable("IssueTrackerTestEnvironment") ?? "ci";
@@ -21,17 +22,23 @@ namespace IssueTracker.DatabaseTesting.MigrationsTest
 
             _connectionString = config.GetConnectionString("SqlServer");
 
+            _dbContextOptions = new DbContextOptionsBuilder<DbContext>()
+                              .UseSqlServer(_connectionString)
+                              .Options;
+
             EnsureDatabaseCreated();
         }
 
         private void EnsureDatabaseCreated()
         {
-            var options = new DbContextOptionsBuilder<DbContext>()
-                              .UseSqlServer(_connectionString)
-                              .Options;
-
-            using var context = new DbContext(options);
+            using var context = new DbContext(_dbContextOptions);
             context.Database.EnsureCreated();
+        }
+
+        public void Dispose()
+        {
+            using var context = new DbContext(_dbContextOptions);
+            context.Database.EnsureDeleted();
         }
 
         [Fact]
@@ -51,5 +58,4 @@ namespace IssueTracker.DatabaseTesting.MigrationsTest
             runner.MigrateUp();
         }
     }
-
 }
