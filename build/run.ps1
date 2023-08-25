@@ -1,0 +1,1 @@
+docker run --rm -p 7141:80 -e ASPNETCORE_URLS="http://+" -e ConnectionStrings__SqlServer="Data Source=host.docker.internal\SQLEXPRESS; Initial Catalog=IssueTrackerDb; User ID=sa;Password=1qazXSW@; trustServerCertificate=true" build-release/issue-tracker:latest

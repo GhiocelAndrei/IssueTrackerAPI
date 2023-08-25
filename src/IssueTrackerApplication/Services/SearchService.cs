@@ -1,8 +1,17 @@
-﻿namespace IssueTracker.Application.Services
+﻿using IssueTracker.Abstractions.Mapping;
+using IssueTracker.DataAccess.Repositories;
+
+namespace IssueTracker.Application.Services
 {
-    public class SearchLimitingService
+    public class SearchService
     {
+        private readonly ISearchRepository _searchRepository;
         public const int MaxResultsPerCategory = 50;
+
+        public SearchService(ISearchRepository searchRepository)
+        {
+            _searchRepository = searchRepository;
+        }
 
         public (List<T1> issues, List<T2> projects) LimitResults<T1, T2>(List<T1> issuesResults, List<T2> projectsResults)
         {
@@ -23,5 +32,8 @@
 
             return (issuesResults, projectsResults);
         }
+
+        public Task<List<SearchResultDto>> SearchAsync(string value, CancellationToken ct)
+            => _searchRepository.SearchAsync(MaxResultsPerCategory, value, ct);      
     }
 }

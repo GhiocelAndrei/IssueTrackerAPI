@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using IssueTracker.Abstractions.Models;
 using IssueTracker.Abstractions.Definitions;
+using IssueTracker.Abstractions.Mapping;
 
 namespace IssueTracker.DataAccess.DatabaseContext
 {
@@ -15,6 +16,7 @@ namespace IssueTracker.DataAccess.DatabaseContext
         public DbSet<Project> Projects { get; set; } = null!;
         public DbSet<Sprint> Sprints { get; set; } = null!;
         public DbSet<ScalarLong> ScalarLong { get; set; }
+        public DbSet<SearchResultDto> SearchResult { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +35,7 @@ namespace IssueTracker.DataAccess.DatabaseContext
             modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
 
             modelBuilder.Entity<ScalarLong>().HasNoKey();
+            modelBuilder.Entity<SearchResultDto>().HasNoKey();
         }
     }
 
