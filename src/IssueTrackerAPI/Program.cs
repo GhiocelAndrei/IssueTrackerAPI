@@ -8,7 +8,6 @@ using IssueTracker.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Configuration.ApplicationAddConfiguration(builder.Environment);
 
 // Add services to the container.
@@ -37,7 +36,8 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IProjectRepository, ProjectRepository>()
     .AddScoped<IUnitOfWork, UnitOfWork>()
     .AddScoped<AccountService>()
-    .AddScoped<SearchLimitingService>();
+    .AddScoped<SearchService>()
+    .AddScoped<ISearchRepository, SearchRepository>();
 
 builder.Services.AddHttpClient();
 
@@ -59,8 +59,6 @@ else
 {
     app.UseExceptionHandler("/error");
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors("AllowAllOrigins");
 

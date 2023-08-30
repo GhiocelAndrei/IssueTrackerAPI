@@ -8,7 +8,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using System.Text;
 using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
 
 namespace IssueTracker.Application.Services
 {
@@ -188,7 +187,7 @@ namespace IssueTracker.Application.Services
                 {
                     queryBuilder.Append(" or ");
                 }
-                queryBuilder.Append($"{properties[i]}.Contains(@0)");
+                queryBuilder.Append($"{properties[i]}.StartsWith(@0)");
             }
 
             parameters.Add(value);
