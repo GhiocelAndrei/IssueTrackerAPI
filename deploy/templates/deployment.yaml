@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.appName }}-deployment"
+  annotations:
+    kubernetes.io/change-cause: "Initial deployment of the app"
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.numberOfReplicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      name: myissuetracker
+      labels:
+        env: prod
+        app: {{ .Values.appName }}
+        app.kubernetes.io/name: {{ .Values.appName }}
+    spec:
+      containers:
+      - name: "{{ .Values.appName }}-container"
+        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: ConnectionStrings__SqlServer
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Values.appName }}-secret"
+              key: ConnectionStrings__SqlServer
+        - name: Auth0__ClientId
+          value: {{ .Values.auth0.clientId }}
+        - name: Auth0__ClientSecret
+          value: {{ .Values.auth0.clientSecret }}
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "750m"

@@ -75,7 +75,7 @@ BEGIN
         CONCAT('Issue_', @CounterIssues),
         'Issue description',
         0,
-        @CurrentSprintId
+        @CurrentSprintId,
         @CurrentReporterId,
         @CurrentAssigneeId,
         GETDATE(),
