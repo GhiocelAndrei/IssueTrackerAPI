@@ -85,5 +85,14 @@ namespace IssueTrackerAPI.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("mine")]
+        [OAuth(Permissions.IssuesRead)]
+        public async Task<ActionResult<IEnumerable<UserIssueDto>>> GetIssuesForUser(long projectId, long userId, CancellationToken ct)
+        {
+            var issues = await _issueService.GetIssuesForUserAsync(projectId, userId, ct);
+
+            return _mapper.Map<List<UserIssueDto>>(issues);
+        }
     }
 }
