@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using IssueTracker.Abstractions.Exceptions;
+using System.Security.Claims;
 
 namespace IssueTracker.Application.Services
 {
@@ -57,6 +58,16 @@ namespace IssueTracker.Application.Services
             {
                 throw new AuthenticationException($"A network error occurred while attempting to fetch the token : {e.Message}");
             }
+        }
+
+        public long GetUserId(ClaimsPrincipal user)
+        {
+            var userIdClaim = user.FindFirst("UserId");
+            if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out long userId))
+            {
+                throw new AuthenticationException("Invalid UserId claim");
+            }
+            return userId;
         }
     }
 }

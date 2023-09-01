@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using IssueTracker.Abstractions.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Security.Claims;
+using IssueTracker.Application.Services;
+using IssueTracker.Abstractions.Mapping;
 
 namespace IssueTracker.Application
 {
@@ -53,6 +57,11 @@ namespace IssueTracker.Application
                     options.SignInScheme = "AuthCookieScheme";
                     options.SaveTokens = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
+
+                    options.Events = new OpenIdConnectEvents
+                    {
+                        OnTokenValidated = context => HandleTokenValidated(context, configuration)
+                    };
                 }).AddJwtBearer(options =>
                 {
                     options.Authority = $"https://{auth0Settings.Domain}";
@@ -60,6 +69,34 @@ namespace IssueTracker.Application
                 });
 
             return services;
+        }
+
+        private static async Task HandleTokenValidated(Microsoft.AspNetCore.Authentication.OpenIdConnect.TokenValidatedContext context, IConfiguration configuration)
+        {
+            var userEmail = context.Principal.FindFirstValue("name");
+            var userName = context.Principal.FindFirstValue("nickname");
+
+            var userService = context.HttpContext.RequestServices.GetRequiredService<IUsersService>();
+
+            var user = await userService.GetUserByEmailAsync(userEmail, CancellationToken.None);
+
+            if (user == null)
+            {
+                var userDto = new UserCreatingDto
+                {
+                    Email = userEmail,
+                    Name = userName,
+                    Role = "User"
+                };
+
+                user = await userService.CreateAsync(userDto, CancellationToken.None);
+            }
+
+            var claimsIdentity = context.Principal.Identity as ClaimsIdentity;
+            if (claimsIdentity != null)
+            {
+                claimsIdentity.AddClaim(new Claim("UserId", user.Id.ToString()));
+            }
         }
     }
 }

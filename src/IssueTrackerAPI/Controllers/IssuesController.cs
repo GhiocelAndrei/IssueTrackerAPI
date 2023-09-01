@@ -15,10 +15,13 @@ namespace IssueTrackerAPI.Controllers
     {
         private readonly IIssuesService _issueService;
         private readonly IMapper _mapper;
-        public IssuesController(IIssuesService issueService, IMapper mapper)
+        private readonly AccountService _accountService;
+
+        public IssuesController(IIssuesService issueService, IMapper mapper, AccountService accountService)
         {
             _issueService = issueService;
             _mapper = mapper;
+            _accountService = accountService;
         }
 
         [HttpGet("All")]
@@ -87,9 +90,10 @@ namespace IssueTrackerAPI.Controllers
         }
 
         [HttpGet("mine")]
-        [OAuth(Permissions.IssuesRead)]
-        public async Task<ActionResult<IEnumerable<UserIssueDto>>> GetIssuesForUser(long projectId, long userId, CancellationToken ct)
+        public async Task<ActionResult<IEnumerable<UserIssueDto>>> GetIssuesForUser(long projectId, CancellationToken ct)
         {
+            var userId =  _accountService.GetUserId(User);
+
             var issues = await _issueService.GetIssuesForUserAsync(projectId, userId, ct);
 
             return _mapper.Map<List<UserIssueDto>>(issues);

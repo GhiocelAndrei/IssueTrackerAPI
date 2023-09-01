@@ -19,19 +19,8 @@ namespace IssueTracker.Application.Services
 
         public Task<bool> ExistsAsync(long id, CancellationToken ct)
             => DbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == id, ct);
-         
-        public async Task<string> LoginUserAsync(LoginUserCommand userCommand, CancellationToken ct)
-        {
-            var userExists = await DbContext.Set<User>()
-                .Where(anyUser => anyUser.Name == userCommand.Name && anyUser.Email == userCommand.Email)
-                .SingleOrDefaultAsync(ct);
 
-            if (userExists == null)
-            {
-                throw new NotFoundException("Login credentials are wrong");
-            }
-
-            return userExists.Role;
-        }
+        public Task<User> GetUserByEmailAsync(string email, CancellationToken ct)
+            => DbContext.Set<User>().AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct);
     }
 }

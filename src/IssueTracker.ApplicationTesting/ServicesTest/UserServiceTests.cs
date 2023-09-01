@@ -171,33 +171,6 @@ namespace IssueTracker.Testing.ServicesTest
         }
 
         [Fact]
-        public async Task LoginUserAsync_ShouldReturnUserRole()
-        {
-            // Arrange
-            var loginUserCommand = new LoginUserCommand 
-            { 
-                Name = "John", 
-                Email = "john@test.com" 
-            };
-
-            var user = new User 
-            { 
-              Name = "John", 
-              Email = "john@test.com",
-              Role = "Admin" 
-            };
-
-            _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync();
-
-            // Act
-            var result = await _sut.LoginUserAsync(loginUserCommand, It.IsAny<CancellationToken>());
-
-            // Assert
-            Assert.Equal(user.Role, result);
-        }
-
-        [Fact]
         public async Task PatchAsync_ShouldThrowNotFoundException_WhenUserNotFound()
         {
             // Arrange
