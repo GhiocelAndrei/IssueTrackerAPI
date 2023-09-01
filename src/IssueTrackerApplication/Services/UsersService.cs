@@ -19,8 +19,5 @@ namespace IssueTracker.Application.Services
 
         public Task<bool> ExistsAsync(long id, CancellationToken ct)
             => DbContext.Set<User>().AsNoTracking().AnyAsync(u => u.Id == id, ct);
-
-        public Task<User> GetUserByEmailAsync(string email, CancellationToken ct)
-            => DbContext.Set<User>().AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct);
     }
 }
