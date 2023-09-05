@@ -37,7 +37,8 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile))
     .AddScoped<IUnitOfWork, UnitOfWork>()
     .AddScoped<AccountService>()
     .AddScoped<SearchService>()
-    .AddScoped<ISearchRepository, SearchRepository>();
+    .AddScoped<ISearchRepository, SearchRepository>()
+    .AddScoped<IIssueRepository, IssueRepository>();
 
 builder.Services.AddHttpClient();
 

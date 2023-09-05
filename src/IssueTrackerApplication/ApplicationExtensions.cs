@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using IssueTracker.Abstractions.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Security.Claims;
+using IssueTracker.Application.Services;
+using IssueTracker.Abstractions.Mapping;
 
 namespace IssueTracker.Application
 {

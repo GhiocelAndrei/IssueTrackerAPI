@@ -12,6 +12,7 @@ using FluentValidation;
 using Newtonsoft.Json;
 using FluentValidation.Results;
 using System.Transactions;
+using IssueTracker.DataAccess.Repositories;
 
 namespace IssueTracker.Testing.ServicesTest
 {
@@ -23,6 +24,7 @@ namespace IssueTracker.Testing.ServicesTest
         private readonly Mock<IUsersService> _userServiceMock;
         private readonly Mock<IProjectsService> _projectServiceMock;
         private readonly Mock<IValidatorFactory> _validatorFactoryMock;
+        private readonly Mock<IIssueRepository> _issueRepositoryMock;
 
         private readonly Mock<IUnitOfWork> _transactionUnitMock;
         public IssueServiceTests()
@@ -41,8 +43,12 @@ namespace IssueTracker.Testing.ServicesTest
             _projectServiceMock = new Mock<IProjectsService>();
             _validatorFactoryMock = new Mock<IValidatorFactory>();
             _transactionUnitMock = new Mock<IUnitOfWork>();
+            _issueRepositoryMock = new Mock<IIssueRepository>();
 
-            _sut = new IssuesService(_dbContext, _mapper, _validatorFactoryMock.Object, _userServiceMock.Object, _projectServiceMock.Object, _transactionUnitMock.Object);
+            _sut = new IssuesService(_dbContext, _mapper, 
+                _validatorFactoryMock.Object, _userServiceMock.Object, 
+                _projectServiceMock.Object, _transactionUnitMock.Object,
+                _issueRepositoryMock.Object);
         }
 
         public void Dispose()

@@ -6,6 +6,7 @@ using IssueTracker.Abstractions.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.Transactions;
 using FluentValidation;
+using IssueTracker.DataAccess.Repositories;
 
 namespace IssueTracker.Application.Services
 {
@@ -14,18 +15,21 @@ namespace IssueTracker.Application.Services
         private readonly IUsersService _userService;
         private readonly IProjectsService _projectService;
         private readonly IUnitOfWork _transactionUnit;
+        private readonly IIssueRepository _issueRepository;
 
         public IssuesService(IssueContext dbContext,
             IMapper mapper,
             IValidatorFactory validatorFactory,
             IUsersService userService,
             IProjectsService projectService,
-            IUnitOfWork transactionUnit)
+            IUnitOfWork transactionUnit,
+            IIssueRepository issueRepository)
             : base(dbContext, mapper, validatorFactory)
         {
             _userService = userService;
             _projectService = projectService;
             _transactionUnit = transactionUnit;
+            _issueRepository = issueRepository;
         }
 
         public async Task<Issue> CreateAsync(CreateIssueCommand entity, CancellationToken ct) 
@@ -97,5 +101,7 @@ namespace IssueTracker.Application.Services
         public Task<List<Issue>> GetIssuesBySprintIdAsync(long id, CancellationToken ct)
             => DbContext.Issues.Where(i => i.SprintId == id && !i.IsDeleted).ToListAsync(ct);
 
+        public Task<List<UserIssueDto>> GetIssuesForUserAsync(long projectId, long userId, CancellationToken ct)
+            => _issueRepository.GetIssuesForUserAsync(projectId, userId, ct);
     }
 }
