@@ -1,0 +1,17 @@
+appName: issue-tracker-app
+
+image:
+  name: ghiocel/issue-tracker
+  tag: v7
+
+port: 7141
+nodePort: 30141
+
+numberOfReplicas : 1
+
+connectionString:
+  SqlServer: DefaultConnectionString
+
+auth0:
+  clientId: defaultClientId
+  clientSecret: defaultClientSecret

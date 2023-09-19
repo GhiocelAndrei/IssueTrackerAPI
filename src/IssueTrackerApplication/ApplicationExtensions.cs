@@ -44,10 +44,15 @@ namespace IssueTracker.Application
                     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                .AddCookie("AuthCookieScheme")
+                .AddCookie("AuthCookieScheme", options =>
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                })
                 .AddOpenIdConnect("Auth0", options =>
                 {
                     options.Authority = $"https://{auth0Settings.Domain}";
+                    options.RequireHttpsMetadata = false;
                     options.ClientId = auth0Settings.ClientId;
                     options.ClientSecret = auth0Settings.ClientSecret;
                     options.ResponseType = OpenIdConnectResponseType.Code;
@@ -57,9 +62,15 @@ namespace IssueTracker.Application
                     options.SignInScheme = "AuthCookieScheme";
                     options.SaveTokens = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
+
+                    options.NonceCookie.SameSite = SameSiteMode.None;
+                    options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.CorrelationCookie.SameSite = SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
                 }).AddJwtBearer(options =>
                 {
-                    options.Authority = $"https://{auth0Settings.Domain}";
+                    options.Authority = $"https://{auth0Settings.Domain}"; 
+                    options.RequireHttpsMetadata = false;
                     options.Audience = auth0Settings.Audience;
                 });
 
